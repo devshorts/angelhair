@@ -49,28 +49,101 @@
             <url>http://oss.sonatype.org/content/repositories/snapshots</url>
         </repository>
     </repositories>
-
     <properties>
+        <docker.pullOnBuild>true</docker.pullOnBuild>
+        <docker.skipBuild>false</docker.skipBuild>
+
+        <dockerRepo>dom-docker.cloud.dev.phx3.gdg:5000</dockerRepo>
+        <jenkinsBuildNumber>dev</jenkinsBuildNumber>
+        <buildNumber>${git_sha}_${jenkinsBuildNumber}</buildNumber>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <domains.dropwizard.logstash.version>1.0-SNAPSHOT</domains.dropwizard.logstash.version>
-        <dropwizard.template.config.version>1.1.0</dropwizard.template.config.version>
+        <!-- =====================
+              DEPENDENCY VERSIONS
+             ===================== -->
+
+        <apache.commons.codec.version>1.10</apache.commons.codec.version>
+
         <dropwizard.version>0.8.0-rc5</dropwizard.version>
-        <guava.version>18.0</guava.version>
-        <junit.version>4.11</junit.version>
+
         <dropwizard.metrics.version>0.8.1</dropwizard.metrics.version>
-        <domains.common.testing.version>1.0</domains.common.testing.version>
 
         <dropwizard.guice.version>0.8.0</dropwizard.guice.version>
-        <dropwizard.cassandra.version>1.0-dw0.8-cs2.1</dropwizard.cassandra.version>
-
-        <java.version>1.8</java.version>
-        <guice.version>4.0-beta5</guice.version>
-        <domains.common.version>1.11</domains.common.version>
-        <godaddy.logging.version>1.0-SNAPSHOT</godaddy.logging.version>
-
 
         <apache.commons.version>3.3.2</apache.commons.version>
+
+        <domains.common.testing.version>1.0</domains.common.testing.version>
+
+        <guava.version>18.0</guava.version>
+
+        <junit.version>4.11</junit.version>
+
+        <java.version>1.8</java.version>
+
+        <metrics.core.version>3.1.2</metrics.core.version>
+
+        <domains.common.version>1.11</domains.common.version>
+
+        <godaddy.logging.version>1.0</godaddy.logging.version>
+
+        <glassfish.expression.version>3.0.0</glassfish.expression.version>
+
+        <domains.metrics.version>1.0</domains.metrics.version>
+
+        <domains.rabbitmqclient.version>1.8</domains.rabbitmqclient.version>
+
+        <hibernate.validator.version>5.1.3.Final</hibernate.validator.version>
+
+        <podam.version>5.4.0.RELEASE</podam.version>
+
+        <akka.version>2.3.9</akka.version>
+
+        <jedis.version>2.7.2</jedis.version>
+
+        <redisson.version>2.1.3</redisson.version>
+
+        <javafaker.version>0.5</javafaker.version>
+
+        <byte.buddy.version>0.6.2</byte.buddy.version>
+
+        <domains.common.web.version>1.2</domains.common.web.version>
+
+        <domains.akka.utils.version>1.0</domains.akka.utils.version>
+
+        <guice.version>4.0-beta5</guice.version>
+
+        <assertj.version>3.0.0</assertj.version>
+
+        <lombok.version>1.16.2</lombok.version>
+
+        <!--
+            This version must stay at 1.9.4. Ceph doesn't play nice with later versions.
+
+            See https://confluence.int.godaddy.com/display/CEPH/Java+S3+Client+Issues.
+         -->
+        <aws.s3.version>1.9.4</aws.s3.version>
+
+        <jool.version>0.9.6</jool.version>
+
+        <slf4j.version>1.7.10</slf4j.version>
+
+        <jackson.version>2.5.1</jackson.version>
+
+        <dropwizard.cassandra.version>1.0-dw0.8-cs2.1</dropwizard.cassandra.version>
+        <dropwizard.template.config.version>1.1.0</dropwizard.template.config.version>
+
+        <apache.collections4.version>4.0</apache.collections4.version>
+
+        <commons.io.version>2.4</commons.io.version>
+
+        <jodatime.version>2.8.2</jodatime.version>
+
+        <apache.xmlrpc.version>3.1.3</apache.xmlrpc.version>
+
+        <guava.retry.version>1.0.7</guava.retry.version>
+
+        <domains.dropwizard.logstash.version>1.0</domains.dropwizard.logstash.version>
         <!--Plugin versions-->
         <maven.compiler.plugin.version>3.0</maven.compiler.plugin.version>
         <maven.exec.version>1.2.1</maven.exec.version>
@@ -86,20 +159,34 @@
         <reporting.cobertura-maven-plugin.version>2.6</reporting.cobertura-maven-plugin.version>
         <reporting.findbugs-maven-plugin.version>3.0.0</reporting.findbugs-maven-plugin.version>
         <reporting.maven-pmd-plugin.version>5.2.1</reporting.maven-pmd-plugin.version>
-        <reporting.maven-project-info-reports-plugin.version>2.7</reporting.maven-project-info-reports-plugin.version>
-
-        <dockerRepo>dom-docker.cloud.dev.phx3.gdg:5000</dockerRepo>
-        <maven.source.plugin.version>2.4</maven.source.plugin.version>
-        <jenkinsBuildNumber>dev</jenkinsBuildNumber>
-        <buildNumber>${git_sha}_${jenkinsBuildNumber}</buildNumber>
+        <reporting.maven-project-info-reports-plugin.version>2.8</reporting.maven-project-info-reports-plugin.version>
     </properties>
 
     <dependencyManagement>
+
         <dependencies>
             <dependency>
-                <groupId>com.godaddy.domains</groupId>
-                <artifactId>common</artifactId>
-                <version>${domains.common.version}</version>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-s3</artifactId>
+                <version>${aws.s3.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.dropwizard</groupId>
+                <artifactId>dropwizard-forms</artifactId>
+                <version>${dropwizard.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${apache.commons.codec.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.thomaskrille</groupId>
+                <artifactId>dropwizard-template-config</artifactId>
+                <version>${dropwizard.template.config.version}</version>
             </dependency>
 
             <dependency>
@@ -109,27 +196,52 @@
             </dependency>
 
             <dependency>
-                <groupId>com.godaddy</groupId>
-                <artifactId>logging</artifactId>
-                <version>${godaddy.logging.version}</version>
+                <groupId>com.fasterxml.jackson.datatype</groupId>
+                <artifactId>jackson-datatype-joda</artifactId>
+                <version>${jackson.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>com.google.inject.extensions</groupId>
-                <artifactId>guice-assistedinject</artifactId>
-                <version>${guice.version}</version>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.stuartgunter</groupId>
-                <artifactId>dropwizard-cassandra</artifactId>
-                <version>${dropwizard.cassandra.version}</version>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>${apache.collections4.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>de.thomaskrille</groupId>
-                <artifactId>dropwizard-template-config</artifactId>
-                <version>${dropwizard.template.config.version}</version>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.io.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>joda-time</groupId>
+                <artifactId>joda-time</artifactId>
+                <version>${jodatime.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.javafaker</groupId>
+                <artifactId>javafaker</artifactId>
+                <version>${javafaker.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.rholder</groupId>
+                <artifactId>guava-retrying</artifactId>
+                <version>${guava.retry.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>${hibernate.validator.version}</version>
             </dependency>
 
             <dependency>
@@ -146,18 +258,26 @@
 
             <dependency>
                 <groupId>com.godaddy.domains</groupId>
-                <artifactId>common.test</artifactId>
-                <version>${domains.common.testing.version}</version>
+                <artifactId>domains-rg-api-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.godaddy.domains</groupId>
+                <artifactId>domains.metrics</artifactId>
+                <version>${domains.metrics.version}</version>
                 <exclusions>
                     <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-log4j12</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>log4j-over-slf4j</artifactId>
+                        <groupId>io.dropwizard.metrics</groupId>
+                        <artifactId>metrics-core</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.godaddy.domains</groupId>
+                <artifactId>domains-rg-listeners-core</artifactId>
+                <version>${project.version}</version>
             </dependency>
 
             <dependency>
@@ -180,6 +300,24 @@
 
             <dependency>
                 <groupId>io.dropwizard</groupId>
+                <artifactId>dropwizard-testing</artifactId>
+                <version>${dropwizard.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.dropwizard</groupId>
+                <artifactId>dropwizard-metrics-graphite</artifactId>
+                <version>${dropwizard.metrics.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.stuartgunter</groupId>
+                <artifactId>dropwizard-cassandra</artifactId>
+                <version>${dropwizard.cassandra.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.dropwizard</groupId>
                 <artifactId>dropwizard-views-mustache</artifactId>
                 <version>${dropwizard.version}</version>
             </dependency>
@@ -195,30 +333,101 @@
                 <artifactId>dropwizard-assets</artifactId>
                 <version>${dropwizard.version}</version>
             </dependency>
+
             <dependency>
-                <groupId>io.dropwizard</groupId>
-                <artifactId>dropwizard-testing</artifactId>
-                <version>${dropwizard.version}</version>
+                <groupId>com.jcabi</groupId>
+                <artifactId>jcabi-manifests</artifactId>
+                <version>1.1</version>
             </dependency>
 
             <dependency>
-                <groupId>io.dropwizard</groupId>
-                <artifactId>dropwizard-metrics-graphite</artifactId>
-                <version>${dropwizard.metrics.version}</version>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
             </dependency>
 
             <dependency>
-                <groupId>org.easytesting</groupId>
-                <artifactId>fest-assert</artifactId>
-                <version>1.4</version>
+                <groupId>org.jooq</groupId>
+                <artifactId>jool</artifactId>
+                <version>${jool.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.godaddy.domains</groupId>
+                <artifactId>domains.rabbitmq</artifactId>
+                <version>${domains.rabbitmqclient.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.godaddy</groupId>
+                <artifactId>logging</artifactId>
+                <version>${godaddy.logging.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.glassfish</groupId>
+                <artifactId>javax.el</artifactId>
+                <version>${glassfish.expression.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.godaddy.domains</groupId>
+                <artifactId>common</artifactId>
+                <version>${domains.common.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.godaddy.domains</groupId>
+                <artifactId>common.test</artifactId>
+                <version>${domains.common.testing.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-log4j12</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>log4j-over-slf4j</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.godaddy.domains</groupId>
+                <artifactId>akka-utils</artifactId>
+                <version>${domains.akka.utils.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.inject.extensions</groupId>
+                <artifactId>guice-assistedinject</artifactId>
+                <version>${guice.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>${assertj.version}</version>
                 <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.godaddy.domains</groupId>
+                <artifactId>domains-common-web</artifactId>
+                <version>${domains.common.web.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
-                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+                <scope>provided</scope>
             </dependency>
 
             <dependency>
@@ -228,22 +437,20 @@
             </dependency>
 
             <dependency>
+                <groupId>uk.co.jemos.podam</groupId>
+                <artifactId>podam</artifactId>
+                <version>${podam.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${apache.commons.version}</version>
             </dependency>
 
-
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>1.16.2</version>
-                <scope>provided</scope>
-            </dependency>
-
             <dependency>
                 <groupId>com.wordnik</groupId>
-                <artifactId>swagger-jersey2-jaxrs_2.10</artifactId>
+                <artifactId>swagger-jersey2-jaxrs_2.11</artifactId>
                 <version>1.3.12</version>
                 <exclusions>
                     <exclusion>
@@ -256,25 +463,39 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+
+            <dependency>
+                <groupId>com.typesafe.akka</groupId>
+                <artifactId>akka-actor_2.11</artifactId>
+                <version>${akka.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>${jedis.version}</version>
+                <type>jar</type>
+                <scope>compile</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.xmlrpc</groupId>
+                <artifactId>xmlrpc-client</artifactId>
+                <version>${apache.xmlrpc.version}</version>
+            </dependency>
         </dependencies>
+
     </dependencyManagement>
 
     <build>
-
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>${maven.source.plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>attach-sources</id>
-                            <goals>
-                                <goal>jar-no-fork</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
@@ -289,6 +510,7 @@
                     <artifactId>maven-release-plugin</artifactId>
                     <version>2.5.1</version>
                     <configuration>
+                        <arguments>-DbuildNumber=${buildNumber} -Ddocker.skipBuild=true</arguments>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                     </configuration>
                     <dependencies>
@@ -312,6 +534,9 @@
                         <includes>
                             <include>%regex[.*]</include>
                         </includes>
+                        <excludes>
+                            <exclude>%regex[.*.json]</exclude>
+                        </excludes>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -334,46 +559,6 @@
                     </configuration>
                 </plugin>
 
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>cobertura-maven-plugin</artifactId>
-                    <version>${cobertura.maven.plugin.version}</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.ow2.asm</groupId>
-                            <artifactId>asm</artifactId>
-                            <version>5.0.3</version>
-                        </dependency>
-                    </dependencies>
-                    <configuration>
-                        <check>
-                            <haltOnFailure>true</haltOnFailure>
-                            //optional
-                            <!-- Per-class thresholds -->
-                            <lineRate>0</lineRate>
-                            <branchRate>0</branchRate>
-                            <!-- Project-wide thresholds -->
-                            <totalLineRate>0</totalLineRate>
-                            <totalBranchRate>0</totalBranchRate>
-                        </check>
-                        <aggregate>true</aggregate>
-
-                        <formats>
-                            <format>html</format>
-                            <format>xml</format>
-                        </formats>
-
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <phase>verify</phase>
-                            <goals>
-                                <!--<goal>clean</goal>--><!-- works if uncommented -->
-                                <goal>check</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-report-plugin</artifactId>
@@ -398,6 +583,13 @@
                         </execution>
                     </executions>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <configuration>
+                        <failOnError>false</failOnError>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -415,5 +607,6 @@
             </plugin>
         </plugins>
     </build>
+
 
 </project>
