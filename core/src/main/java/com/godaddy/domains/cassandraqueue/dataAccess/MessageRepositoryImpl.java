@@ -3,6 +3,7 @@ package com.godaddy.domains.cassandraqueue.dataAccess;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.datastax.driver.core.querybuilder.Select;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
 import com.godaddy.domains.cassandraqueue.model.BucketPointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
@@ -17,13 +18,15 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
 
+import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
+import static java.util.stream.Collectors.toList;
 
-public class MessageRepositoryImpl implements MessageRepository {
+public class MessageRepositoryImpl extends RepositoryBase implements MessageRepository {
     private final Session session;
     private final QueueName queueName;
     private final BucketConfiguration bucketConfiguration;
@@ -86,11 +89,6 @@ public class MessageRepositoryImpl implements MessageRepository {
         return session.execute(statement).wasApplied();
     }
 
-    @Override public List<Message> getMessages(final BucketPointer bucketPointer) {
-        // list all messages in bucket
-        throw new NotImplementedException();
-    }
-
     @Override
     public void tombstone(final ReaderBucketPointer bucketPointer) {
         // mark the bucket as tombstoned
@@ -106,13 +104,35 @@ public class MessageRepositoryImpl implements MessageRepository {
         session.execute(statement);
     }
 
-    @Override
-    public Optional<DateTime> tombstoneExists(final BucketPointer bucketPointer) {
-        throw new NotImplementedException();
+    private Select.Where getReadMessageQuery(final BucketPointer bucketPointer) {
+        return QueryBuilder.select()
+                           .all()
+                           .from(Tables.Message.TABLE_NAME)
+                           .where(eq(Tables.Message.QUEUENAME, queueName.get()))
+                           .and(eq(Tables.Message.BUCKET_NUM, bucketPointer.get()));
     }
 
-    @Override public Message getMessage(final MessagePointer pointer) {
-        throw new NotImplementedException();
+    @Override
+    public List<Message> getMessages(final BucketPointer bucketPointer) {
+        // list all messages in bucket
+        Statement query = getReadMessageQuery(bucketPointer);
+
+        return session.execute(query).all().stream().map(Message::fromRow).collect(toList());
+    }
+
+    @Override
+    public Optional<DateTime> tombstoneExists(final BucketPointer bucketPointer) {
+        Statement query = getReadMessageQuery(bucketPointer);
+
+        return Optional.ofNullable(getOne(session.execute(query), row -> new DateTime(row.getDate(Tables.Message.CREATED_DATE))));
+    }
+
+    @Override
+    public Message getMessage(final MessagePointer pointer) {
+        final BucketPointer bucketPointer = pointer.toBucketPointer(bucketConfiguration.getBucketSize());
+        Statement query = getReadMessageQuery(bucketPointer);
+
+        return getOne(session.execute(query), Message::fromRow);
     }
 
 
