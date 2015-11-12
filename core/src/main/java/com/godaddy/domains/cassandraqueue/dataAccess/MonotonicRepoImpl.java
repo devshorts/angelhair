@@ -1,5 +1,6 @@
 package com.godaddy.domains.cassandraqueue.dataAccess;
 
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -11,6 +12,7 @@ import com.google.inject.assistedinject.Assisted;
 import org.apache.commons.lang.NotImplementedException;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
 
 public class MonotonicRepoImpl extends RepositoryBase implements MonotonicRepository {
     private final Session session;
@@ -23,7 +25,29 @@ public class MonotonicRepoImpl extends RepositoryBase implements MonotonicReposi
     }
 
     @Override public MonotonicIndex nextMonotonic() {
-        throw new NotImplementedException();
+        MonotonicIndex nextMonotonic = null;
+
+        Statement statement = QueryBuilder.insertInto(Tables.Monoton.TABLE_NAME)
+                                          .value(Tables.Monoton.QUEUENAME, queueName)
+                                          .value(Tables.Monoton.VALUE, 1)
+                                          .ifNotExists();
+
+        if(session.execute(statement).wasApplied()) {
+            return MonotonicIndex.valueOf(1);
+        }
+
+        while(nextMonotonic == null) {
+            Long current = getCurrent().get();
+
+            Statement stat = QueryBuilder.update(Tables.Monoton.TABLE_NAME)
+                                         .with(set(Tables.Monoton.VALUE, current + 1))
+                                         .where(eq(Tables.Monoton.QUEUENAME, queueName))
+                                         .onlyIf(eq(Tables.Monoton.VALUE, current));
+
+            nextMonotonic = getOne(session.execute(stat), MonotonicIndex::map);
+        }
+
+        return nextMonotonic;
     }
 
     @Override public MonotonicIndex getCurrent() {
@@ -32,6 +56,8 @@ public class MonotonicRepoImpl extends RepositoryBase implements MonotonicReposi
                                           .from(Tables.Monoton.TABLE_NAME)
                                           .where(eq(Tables.Monoton.QUEUENAME, queueName));
 
-        return getOne(session.execute(statement), MonotonicIndex::map);
+        MonotonicIndex current = getOne(session.execute(statement), MonotonicIndex::map);
+
+        return current == null ? MonotonicIndex.valueOf(1) : current;
     }
 }
