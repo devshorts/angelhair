@@ -1,11 +1,15 @@
 package com.godaddy.domains.cassandraqueue.workers;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.joda.time.Duration;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class BucketConfiguration {
-    private final int bucketSize;
+    private int bucketSize = 20;
 
-    private final Duration repairWorkerTimeout;
+    private Duration repairWorkerTimeout = Duration.standardSeconds(30);
 }
