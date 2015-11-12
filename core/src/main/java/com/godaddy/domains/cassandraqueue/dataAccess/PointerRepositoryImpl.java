@@ -43,15 +43,7 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
                                       .where(eq(Tables.Pointer.QUEUENAME, queueName.get()))
                                       .and(eq(Tables.Pointer.POINTER_TYPE, PointerType.INVISIBILITY_POINTER.toString()));
 
-        //TODO: Use repositorybase getone
-        ResultSet resultSet = session.execute(query);
-        Row row = resultSet.one();
-
-        if(row == null) {
-            return null;
-        }
-
-        return InvisibilityMessagePointer.valueOf(row.getLong(Tables.Pointer.VALUE));
+        return getOne(session.execute(query), InvisibilityMessagePointer::map);
     }
 
     @Override public void moveMessagePointerTo(final BucketPointer ptr) {
