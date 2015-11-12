@@ -9,5 +9,5 @@ import java.util.Optional;
 public interface Reader {
     Optional<Message> nextMessage(Duration invisiblity);
 
-    void ackMessage(PopReceipt popReceipt);
+    boolean ackMessage(PopReceipt popReceipt);
 }

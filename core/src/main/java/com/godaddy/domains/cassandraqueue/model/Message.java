@@ -2,13 +2,9 @@ package com.godaddy.domains.cassandraqueue.model;
 
 import lombok.Builder;
 import lombok.Data;
-import org.apache.commons.lang.NotImplementedException;
 import org.joda.time.DateTime;
 import org.joda.time.base.AbstractInstant;
-import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple2;
 
-import java.util.Base64;
 import java.util.Optional;
 
 @Data
@@ -24,15 +20,15 @@ public class Message {
 
     private int version;
 
-    public boolean isVisible(){
+    public boolean isVisible() {
         return nextVisiblityAt.map(AbstractInstant::isAfterNow).orElse(true);
     }
 
-    public boolean isNotAcked(){
+    public boolean isNotAcked() {
         return !isAcked;
     }
 
-    public boolean isNotVisible(){
+    public boolean isNotVisible() {
         return !isVisible();
     }
 }

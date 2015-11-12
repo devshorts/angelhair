@@ -5,7 +5,6 @@ import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepositor
 import com.godaddy.domains.cassandraqueue.model.BucketPointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MessagePointer;
-import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -35,8 +34,10 @@ public class MessageRepositoryImpl implements MessageRepository {
         throw new NotImplementedException();
     }
 
-    @Override public void ackMessage(final MonotonicIndex messageId) {
-        // mark message as consumed
+    @Override public boolean ackMessage(final Message message) {
+        // conditionally ack if message version is the same as in the message
+        //  if was able to update then return true, otehrwise false
+
         throw new NotImplementedException();
     }
 

@@ -10,7 +10,6 @@ import com.godaddy.domains.cassandraqueue.model.PopReceipt;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import org.apache.commons.lang.NotImplementedException;
 import org.joda.time.Duration;
 
 import java.util.List;
@@ -43,12 +42,18 @@ public class ReaderImpl implements Reader {
         return getAndMark(getReaderCurrentBucket(), invisibility);
     }
 
-    private InvisibilityMessagePointer getCurrentInvisPointer() {
-        return dataContext.getPointerRepository().getCurrentInvisPointer();
+    @Override public boolean ackMessage(final PopReceipt popReceipt) {
+        final Message messageAt = dataContext.getMessageRepository().getMessageAt(popReceipt.getMessageIndex());
+
+        if (messageAt.getVersion() != popReceipt.getMessageVersion() || messageAt.isVisible()) {
+            return false;
+        }
+
+        return dataContext.getMessageRepository().ackMessage(messageAt);
     }
 
-    @Override public void ackMessage(final PopReceipt popReceipt) {
-        throw new NotImplementedException();
+    private InvisibilityMessagePointer getCurrentInvisPointer() {
+        return dataContext.getPointerRepository().getCurrentInvisPointer();
     }
 
     private BucketPointer getReaderCurrentBucket() {

@@ -3,7 +3,6 @@ package com.godaddy.domains.cassandraqueue.dataAccess.interfaces;
 import com.godaddy.domains.cassandraqueue.model.BucketPointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MessagePointer;
-import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import org.joda.time.Duration;
 
 import java.util.List;
@@ -13,7 +12,7 @@ public interface MessageRepository {
 
     boolean markMessageInvisible(Message message, Duration duration);
 
-    void ackMessage(MonotonicIndex messageId);
+    boolean ackMessage(Message message);
 
     List<Message> getMessages(BucketPointer bucketPointer);
 
