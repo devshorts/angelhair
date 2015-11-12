@@ -26,14 +26,7 @@ public class MonotonicRepoImpl extends RepositoryBase implements MonotonicReposi
     @Override public MonotonicIndex nextMonotonic() {
         MonotonicIndex nextMonotonic = null;
 
-<<<<<<< HEAD
         initializeMonotonicValue();
-=======
-        Statement statement = QueryBuilder.insertInto(Tables.Monoton.TABLE_NAME)
-                                          .value(Tables.Monoton.QUEUENAME, queueName)
-                                          .value(Tables.Monoton.VALUE, 1)
-                                          .ifNotExists();
->>>>>>> adding queue repo
 
         while(nextMonotonic == null) {
             nextMonotonic = incrementMonotonicValue();
