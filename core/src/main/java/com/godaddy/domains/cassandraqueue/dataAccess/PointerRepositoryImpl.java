@@ -18,8 +18,6 @@ import com.google.inject.assistedinject.Assisted;
 import java.util.function.Function;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.gt;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.lt;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
 
 public class PointerRepositoryImpl extends RepositoryBase implements PointerRepository {
@@ -40,6 +38,7 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
     //if original = current pointer move to destination.
     @Override public InvisibilityMessagePointer moveInvisiblityPointerTo(
             final InvisibilityMessagePointer original, final InvisibilityMessagePointer destination) {
+        
         return null;
     }
 
@@ -57,15 +56,6 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
 
     @Override public RepairBucketPointer getRepairCurrentBucketPointer() {
         return getPointer(PointerType.REPAIR_BUCKET, RepairBucketPointer::map);
-    }
-
-    private void movePointer(PointerType pointerType, Pointer pointer) {
-        Statement statement = QueryBuilder.insertInto(Tables.Pointer.TABLE_NAME)
-                                          .value(Tables.Pointer.QUEUENAME, queueName.get())
-                                          .value(Tables.Pointer.POINTER_TYPE, pointerType.toString())
-                                          .value(Tables.Pointer.VALUE, pointer.get());
-
-        session.execute(statement);
     }
 
     private <T extends Pointer> T getPointer(PointerType pointerType, Function<Row, T> mapper) {
