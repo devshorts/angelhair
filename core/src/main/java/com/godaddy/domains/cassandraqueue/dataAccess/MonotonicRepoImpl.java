@@ -29,14 +29,7 @@ public class MonotonicRepoImpl extends RepositoryBase implements MonotonicReposi
         initializeMonotonicValue();
 
         while(nextMonotonic == null) {
-            Long current = getCurrent().get();
-
-            Statement stat = QueryBuilder.update(Tables.Monoton.TABLE_NAME)
-                                         .with(set(Tables.Monoton.VALUE, current + 1))
-                                         .where(eq(Tables.Monoton.QUEUENAME, queueName))
-                                         .onlyIf(eq(Tables.Monoton.VALUE, current));
-
-            nextMonotonic = getOne(session.execute(stat), MonotonicIndex::map);
+            nextMonotonic = incrementMonotonicValue();
         }
 
         return nextMonotonic;
@@ -60,5 +53,16 @@ public class MonotonicRepoImpl extends RepositoryBase implements MonotonicReposi
                                           .ifNotExists();
 
         session.execute(statement);
+    }
+
+    private MonotonicIndex incrementMonotonicValue() {
+        Long current = getCurrent().get();
+
+        Statement stat = QueryBuilder.update(Tables.Monoton.TABLE_NAME)
+                                     .with(set(Tables.Monoton.VALUE, current + 1))
+                                     .where(eq(Tables.Monoton.QUEUENAME, queueName))
+                                     .onlyIf(eq(Tables.Monoton.VALUE, current));
+
+        return getOne(session.execute(stat), MonotonicIndex::map);
     }
 }
