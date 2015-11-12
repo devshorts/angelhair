@@ -32,8 +32,8 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
         this.queueName = queueName;
     }
 
-    @Override public ReaderBucketPointer advanceMessageBucketPointer(final ReaderBucketPointer original, final ReaderBucketPointer ne) {
-        return null;
+    @Override public ReaderBucketPointer advanceMessageBucketPointer(final ReaderBucketPointer original, final ReaderBucketPointer next) {
+        return movePointer(PointerType.BUCKET_POINTER, original, next, pointerEqualsClause(original));
     }
 
     //if destination is less than current pointer value, move to destination.
@@ -44,9 +44,7 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
     }
 
     @Override public RepairBucketPointer advanceRepairBucketPointer(final RepairBucketPointer original, final RepairBucketPointer next) {
-        Clause clause = eq(Tables.Pointer.VALUE, original.get());
-
-        return movePointer(PointerType.REPAIR_BUCKET, original, clause) ? next : original;
+        return movePointer(PointerType.REPAIR_BUCKET, original, next, pointerEqualsClause(original));
     }
 
     @Override public InvisibilityMessagePointer getCurrentInvisPointer() {
@@ -80,7 +78,7 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
         return getOne(session.execute(query), mapper);
     }
 
-    private boolean movePointer(PointerType pointerType, Pointer pointer, Clause clause) {
+    private <T extends Pointer> T movePointer(PointerType pointerType, T pointer, T destination, Clause clause) {
         Statement statement = QueryBuilder.update(Tables.Pointer.TABLE_NAME)
                                           .with(set(Tables.Pointer.VALUE, pointer.get()))
                                           .where(eq(Tables.Pointer.QUEUENAME, queueName.get()))
@@ -88,6 +86,10 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
                                           .onlyIf(clause);
 
         return session.execute(statement)
-                      .wasApplied();
+                      .wasApplied() ? destination : pointer;
+    }
+
+    private Clause pointerEqualsClause(Pointer pointer) {
+        return eq(Tables.Pointer.VALUE, pointer.get());
     }
 }
