@@ -5,9 +5,6 @@ import com.godaddy.domains.cassandraqueue.dataAccess.Tables;
 import lombok.Builder;
 import lombok.Data;
 import org.joda.time.DateTime;
-import org.joda.time.base.AbstractInstant;
-
-import java.util.Optional;
 
 @Data
 @Builder
@@ -36,11 +33,11 @@ public class Message {
 
     public static Message fromRow(final Row row) {
         return Message.builder()
-                .blob(row.getString(Tables.Message.MESSAGE))
-                .index(MonotonicIndex.valueOf(row.getInt(Tables.Message.MONOTON)))
-                .isAcked(row.getBool(Tables.Message.ACKED))
-                .version(row.getInt(Tables.Message.VERSION))
-                .nextVisiblityAt(new DateTime(row.getDate(Tables.Message.NEXT_VISIBLE_ON)))
-                .build();
+                      .blob(row.getString(Tables.Message.MESSAGE))
+                      .index(MonotonicIndex.valueOf(row.getInt(Tables.Message.MONOTON)))
+                      .isAcked(row.getBool(Tables.Message.ACKED))
+                      .version(row.getInt(Tables.Message.VERSION))
+                      .nextVisiblityAt(new DateTime(row.getDate(Tables.Message.NEXT_VISIBLE_ON)))
+                      .build();
     }
 }
