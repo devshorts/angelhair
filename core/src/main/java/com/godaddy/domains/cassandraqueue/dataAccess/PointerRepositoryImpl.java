@@ -2,13 +2,9 @@ package com.godaddy.domains.cassandraqueue.dataAccess;
 
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-<<<<<<< Updated upstream
-=======
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
->>>>>>> Stashed changes
 import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.PointerRepository;
 import com.godaddy.domains.cassandraqueue.model.BucketPointer;
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
@@ -44,8 +40,8 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
      * @param destination
      */
     @Override public void moveInvisiblityPointerTo(final MonotonicIndex destination) {
-
-
+        Clause clause =
+        movePointer(PointerType.INVISIBILITY_POINTER, destination)
     }
 
     @Override public InvisibilityMessagePointer getCurrentInvisPointer() {
