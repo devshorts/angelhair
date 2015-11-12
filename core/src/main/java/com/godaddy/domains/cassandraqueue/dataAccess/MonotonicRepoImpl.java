@@ -18,6 +18,6 @@ public class MonotonicRepoImpl implements MonotonicRepository {
     }
 
     @Override public MonotonicIndex nextMonotonic() {
-        return null;
+        return MonotonicIndex.valueOf(0);
     }
 }
