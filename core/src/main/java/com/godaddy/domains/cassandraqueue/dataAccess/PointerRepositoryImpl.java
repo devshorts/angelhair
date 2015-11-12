@@ -2,6 +2,11 @@ package com.godaddy.domains.cassandraqueue.dataAccess;
 
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
+<<<<<<< Updated upstream
+=======
+import com.datastax.driver.core.querybuilder.Clause;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
+>>>>>>> Stashed changes
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.PointerRepository;
@@ -18,6 +23,7 @@ import org.apache.commons.lang.NotImplementedException;
 import java.util.function.Function;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
 
 public class PointerRepositoryImpl extends RepositoryBase implements PointerRepository {
     private final Session session;
@@ -33,7 +39,12 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
         throw new NotImplementedException();
     }
 
+    /**
+     * Conditional update of either the minimum of the current in the db or the destination
+     * @param destination
+     */
     @Override public void moveInvisiblityPointerTo(final MonotonicIndex destination) {
+
 
     }
 
@@ -70,5 +81,15 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
                                       .and(eq(Tables.Pointer.POINTER_TYPE, pointerType.toString()));
 
         return getOne(session.execute(query), mapper);
+    }
+
+    private void movePointer(PointerType pointerType, Pointer pointer, Clause clause) {
+        Statement statement = QueryBuilder.update(Tables.Pointer.TABLE_NAME)
+                                          .with(set(Tables.Pointer.VALUE, pointer.get()))
+                                          .where(eq(Tables.Pointer.QUEUENAME, queueName.get()))
+                                          .and(eq(Tables.Pointer.POINTER_TYPE, pointerType.toString()))
+                                          .onlyIf(clause);
+
+        session.execute(statement);
     }
 }

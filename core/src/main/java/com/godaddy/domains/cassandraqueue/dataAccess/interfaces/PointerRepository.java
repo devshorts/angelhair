@@ -6,7 +6,7 @@ import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 
 public interface PointerRepository {
     /**
-     * Conditional update teh bucket if the message pointer still points to pointer
+     * Conditional update the bucket if the message pointer still points to pointer
      *
      * otherwise return the value in the pointer. IF for wahtever reason they are still the same (weird)
      * try again
