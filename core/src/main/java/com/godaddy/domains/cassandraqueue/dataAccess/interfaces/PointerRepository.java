@@ -1,8 +1,8 @@
 package com.godaddy.domains.cassandraqueue.dataAccess.interfaces;
 
-import com.godaddy.domains.cassandraqueue.model.BucketPointer;
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
-import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
+import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
+import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
 
 public interface PointerRepository {
     /**
@@ -10,22 +10,24 @@ public interface PointerRepository {
      *
      * otherwise return the value in the pointer. IF for wahtever reason they are still the same (weird)
      * try again
+     *
      * @param ptr
      * @return
      */
-    BucketPointer advanceMessageBucketPointer(BucketPointer ptr);
+    ReaderBucketPointer advanceMessageBucketPointer(ReaderBucketPointer original, ReaderBucketPointer ne);
 
     /**
      * Conditional update of either the minimum of the current in the db or the destination
+     *
      * @param destination
      */
-    void moveInvisiblityPointerTo(MonotonicIndex destination);
+    InvisibilityMessagePointer moveInvisiblityPointerTo(InvisibilityMessagePointer original, InvisibilityMessagePointer destination);
+
+    RepairBucketPointer advanceRepairBucketPointer(RepairBucketPointer original, RepairBucketPointer next);
 
     InvisibilityMessagePointer getCurrentInvisPointer();
 
-    void moveMessagePointerTo(BucketPointer ptr);
+    ReaderBucketPointer getReaderCurrentBucket();
 
-    void moveInvisiblityPointerTo(InvisibilityMessagePointer ptr);
-
-    BucketPointer getReaderCurrentBucket();
+    RepairBucketPointer getRepairCurrentBucketPointer();
 }

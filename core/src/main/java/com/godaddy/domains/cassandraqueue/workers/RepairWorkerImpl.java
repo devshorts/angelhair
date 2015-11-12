@@ -2,7 +2,7 @@ package com.godaddy.domains.cassandraqueue.workers;
 
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.PointerRepository;
-import com.godaddy.domains.cassandraqueue.model.BucketPointer;
+import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.google.inject.Inject;
 
@@ -20,11 +20,11 @@ public class RepairWorkerImpl implements RepairWorker {
 
     }
 
-    private BucketPointer getCurrentBucket(){
+    private ReaderBucketPointer getCurrentBucket(){
         return null;
     }
 
-    private BucketPointer findFirstBucketToMonitor(){
+    private ReaderBucketPointer findFirstBucketToMonitor(){
         // first bucket that is tombstoned and is unfilled
 
         return null;

@@ -2,23 +2,18 @@ package com.godaddy.domains.cassandraqueue.dataAccess;
 
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
-<<<<<<< Updated upstream
-=======
+import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
->>>>>>> Stashed changes
-import com.datastax.driver.core.Statement;
-import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.PointerRepository;
-import com.godaddy.domains.cassandraqueue.model.BucketPointer;
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
-import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.Pointer;
 import com.godaddy.domains.cassandraqueue.model.PointerType;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
+import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import org.apache.commons.lang.NotImplementedException;
 
 import java.util.function.Function;
 
@@ -35,33 +30,29 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
         this.queueName = queueName;
     }
 
-    @Override public BucketPointer advanceMessageBucketPointer(final BucketPointer ptr) {
-        throw new NotImplementedException();
+    @Override public ReaderBucketPointer advanceMessageBucketPointer(final ReaderBucketPointer original, final ReaderBucketPointer ne) {
+        return null;
     }
 
-    /**
-     * Conditional update of either the minimum of the current in the db or the destination
-     * @param destination
-     */
-    @Override public void moveInvisiblityPointerTo(final MonotonicIndex destination) {
+    @Override public InvisibilityMessagePointer moveInvisiblityPointerTo(
+            final InvisibilityMessagePointer original, final InvisibilityMessagePointer destination) {
+        return null;
+    }
 
-
+    @Override public RepairBucketPointer advanceRepairBucketPointer(final RepairBucketPointer original, final RepairBucketPointer next) {
+        return null;
     }
 
     @Override public InvisibilityMessagePointer getCurrentInvisPointer() {
         return getPointer(PointerType.INVISIBILITY_POINTER, InvisibilityMessagePointer::map);
     }
 
-    @Override public void moveMessagePointerTo(final BucketPointer ptr) {
-        movePointer(PointerType.BUCKET_POINTER, ptr);
+    @Override public ReaderBucketPointer getReaderCurrentBucket() {
+        return getPointer(PointerType.BUCKET_POINTER, ReaderBucketPointer::map);
     }
 
-    @Override public void moveInvisiblityPointerTo(InvisibilityMessagePointer ptr) {
-        movePointer(PointerType.INVISIBILITY_POINTER, ptr);
-    }
-
-    @Override public BucketPointer getReaderCurrentBucket() {
-        return getPointer(PointerType.BUCKET_POINTER, BucketPointer::map);
+    @Override public RepairBucketPointer getRepairCurrentBucketPointer() {
+        return getPointer(PointerType.REPAIR_BUCKET, RepairBucketPointer::map);
     }
 
     private void movePointer(PointerType pointerType, Pointer pointer) {

@@ -2,7 +2,7 @@ package com.godaddy.domains.cassandraqueue.dataAccess;
 
 import com.datastax.driver.core.Session;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
-import com.godaddy.domains.cassandraqueue.model.BucketPointer;
+import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MessagePointer;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
@@ -41,12 +41,12 @@ public class MessageRepositoryImpl implements MessageRepository {
         throw new NotImplementedException();
     }
 
-    @Override public List<Message> getMessages(final BucketPointer bucketPointer) {
+    @Override public List<Message> getMessages(final ReaderBucketPointer bucketPointer) {
         // list all messages in bucket
         throw new NotImplementedException();
     }
 
-    @Override public void tombstone(final BucketPointer bucketPointer) {
+    @Override public void tombstone(final ReaderBucketPointer bucketPointer) {
         // mark the bucket as tombstoned
         throw new NotImplementedException();
     }
@@ -55,7 +55,7 @@ public class MessageRepositoryImpl implements MessageRepository {
         throw new NotImplementedException();
     }
 
-    @Override public boolean tombstoneExists(final BucketPointer bucketPointer) {
+    @Override public boolean tombstoneExists(final ReaderBucketPointer bucketPointer) {
         throw new NotImplementedException();
     }
 }

@@ -2,7 +2,7 @@ package com.godaddy.domains.cassandraqueue.workers;
 
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
-import com.godaddy.domains.cassandraqueue.model.BucketPointer;
+import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
@@ -56,7 +56,7 @@ public class ReaderImpl implements Reader {
         return dataContext.getPointerRepository().getCurrentInvisPointer();
     }
 
-    private BucketPointer getReaderCurrentBucket() {
+    private ReaderBucketPointer getReaderCurrentBucket() {
         return dataContext.getPointerRepository().getReaderCurrentBucket();
     }
 
@@ -76,7 +76,7 @@ public class ReaderImpl implements Reader {
     }
 
     private Optional<Message> setNextInvisiblityPointer(final InvisibilityMessagePointer pointer, Duration invisiblity) {
-        final BucketPointer bucketPointer = pointer.toBucketPointer(config.getBucketSize());
+        final ReaderBucketPointer bucketPointer = pointer.toBucketPointer(config.getBucketSize());
 
         final List<Message> messages = dataContext.getMessageRepository().getMessages(bucketPointer);
 
@@ -97,7 +97,7 @@ public class ReaderImpl implements Reader {
         return dataContext.getMessageRepository().markMessageInvisible(message, invisiblity);
     }
 
-    private Optional<Message> getAndMark(BucketPointer currentBucket, Duration invisiblity) {
+    private Optional<Message> getAndMark(ReaderBucketPointer currentBucket, Duration invisiblity) {
 
         final List<Message> allMessages = dataContext.getMessageRepository().getMessages(currentBucket);
 
@@ -131,17 +131,17 @@ public class ReaderImpl implements Reader {
         return Optional.of(message);
     }
 
-    private void tombstone(final BucketPointer bucket) {
+    private void tombstone(final ReaderBucketPointer bucket) {
         dataContext.getMessageRepository().tombstone(bucket);
     }
 
-    private boolean monotonPastBucket(final BucketPointer currentBucket) {
-        final BucketPointer currentMonotonicBucket = getLatestMonotonic().toBucketPointer(config.getBucketSize());
+    private boolean monotonPastBucket(final ReaderBucketPointer currentBucket) {
+        final ReaderBucketPointer currentMonotonicBucket = getLatestMonotonic().toBucketPointer(config.getBucketSize());
 
         return currentMonotonicBucket.get() > currentBucket.get();
     }
 
-    private BucketPointer advanceBucket(BucketPointer currentBucket) {
+    private ReaderBucketPointer advanceBucket(ReaderBucketPointer currentBucket) {
         return dataContext.getPointerRepository().advanceMessageBucketPointer(currentBucket);
     }
 

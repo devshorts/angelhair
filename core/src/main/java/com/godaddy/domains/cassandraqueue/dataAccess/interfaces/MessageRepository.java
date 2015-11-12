@@ -1,6 +1,6 @@
 package com.godaddy.domains.cassandraqueue.dataAccess.interfaces;
 
-import com.godaddy.domains.cassandraqueue.model.BucketPointer;
+import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MessagePointer;
 import org.joda.time.Duration;
@@ -14,11 +14,11 @@ public interface MessageRepository {
 
     boolean ackMessage(Message message);
 
-    List<Message> getMessages(BucketPointer bucketPointer);
+    List<Message> getMessages(ReaderBucketPointer bucketPointer);
 
-    void tombstone(BucketPointer bucketPointer);
+    void tombstone(ReaderBucketPointer bucketPointer);
 
     Message getMessageAt(MessagePointer pointer);
 
-    boolean tombstoneExists(BucketPointer bucketPointer);
+    boolean tombstoneExists(ReaderBucketPointer bucketPointer);
 }

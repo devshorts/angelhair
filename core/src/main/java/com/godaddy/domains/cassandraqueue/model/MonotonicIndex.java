@@ -31,8 +31,8 @@ public final class MonotonicIndex extends LongValue implements MessagePointer {
         return new MonotonicIndex(value);
     }
 
-    public BucketPointer toBucketPointer(int bucketSize){
-        return BucketPointer.valueOf(get() / bucketSize);
+    public ReaderBucketPointer toBucketPointer(int bucketSize){
+        return ReaderBucketPointer.valueOf(get() / bucketSize);
     }
 
     public static MonotonicIndex map(Row row) {
