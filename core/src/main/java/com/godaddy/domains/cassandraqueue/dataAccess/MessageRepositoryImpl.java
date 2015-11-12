@@ -13,12 +13,10 @@ import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import org.apache.commons.lang.NotImplementedException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,8 +46,8 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                           .value(Tables.Message.MONOTON, message.getIndex().get())
                                           .value(Tables.Message.VERSION, 1)
                                           .value(Tables.Message.ACKED, false)
-                                          .value(Tables.Message.NEXT_VISIBLE_ON, now.plus(initialInvisibility).toDateTime())
-                                          .value(Tables.Message.CREATED_DATE, now.toDateTime());
+                                          .value(Tables.Message.NEXT_VISIBLE_ON, now.plus(initialInvisibility).toDate())
+                                          .value(Tables.Message.CREATED_DATE, now.toDate());
 
         session.execute(statement);
     }
@@ -62,7 +60,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         final DateTime now = DateTime.now(DateTimeZone.UTC).plus(duration);
 
         Statement statement = QueryBuilder.update(Tables.Message.TABLE_NAME)
-                                          .with(set(Tables.Message.NEXT_VISIBLE_ON, now.toDateTime()))
+                                          .with(set(Tables.Message.NEXT_VISIBLE_ON, now.toDate()))
                                           .and(set(Tables.Message.VERSION, message.getVersion() + 1))
                                           .where(eq(Tables.Message.QUEUENAME, queueName.get()))
                                           .and(eq(Tables.Message.BUCKET_NUM, message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize())))
