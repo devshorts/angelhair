@@ -1,0 +1,90 @@
+server:
+  adminMinThreads: 1
+  adminMaxThreads: 64
+  rootPath: "/api/*"
+  applicationConnectors:
+    - type: http
+      port: 8080
+  adminConnectors:
+    - type: http
+      port: 8081
+
+cassandra:
+  clusterName: rg-api-cluster
+  keyspace: hackathon
+  contactPoints: ["10.22.10.39"]
+  port: 9042
+  socketOptions:
+    keepAlive: true
+  authProvider:
+    type: plainText
+    username: ganstaUser
+    password: IHNJ79Yfs70fJBKyOhmR
+  reconnectionPolicy:
+    type: exponential
+    baseDelay: 1 second
+    maxDelay: 30 seconds
+  #SSL port will be used if SSL is defined.
+  ssl:
+    port: 9043
+  loadBalancingPolicy:
+    dataCenter: phx3_stg_spin
+
+metrics:
+  reporters:
+    - type: console
+      timeZone: UTC
+      output: stdout
+      durationUnit: milliseconds
+      rateUnit: seconds
+      frequency: 120 seconds
+    - type: graphite
+      host: gen1.graphs.test.int.godaddy.com
+      #host: 10.22.252.226
+      port: 2003
+      prefix: domains.cassandra-queue
+
+# Logging settings.
+logging:
+
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: INFO
+
+  # Logger-specific levels
+  loggers:
+
+    # Sets the level for 'com.example.app' to DEBUG.
+     com.godaddy.domains : ALL
+
+     com.sun.jersey.api.container.filter.LoggingFilter : INFO
+
+  appenders:
+    # Log warnings and errors to stderr
+    - type: console
+      threshold: ALL
+      target: stderr
+
+    # Log structured json log for logstash
+    - type: logstash-file
+      threshold: ALL
+      currentLogFilename: /data/logs/debug-json.log
+      archivedLogFilenamePattern: /data/logs/debug-json%d.log.gz
+      customFields:
+        app: cassandra-queue
+      archivedFileCount: 5
+
+    # Log info, warnings and errors to our apps' main log.
+    # Rolled over daily and retained for 5 days.
+    - type: file
+      threshold: ALL
+      currentLogFilename: /data/logs/debug.log
+      archivedLogFilenamePattern: /data/logs/debug-%d.log.gz
+      archivedFileCount: 5
+
+    # Log debug messages, info, warnings and errors to our apps' debug log.
+    # Rolled over hourly and retained for 6 hours
+    - type: file
+      threshold: WARN
+      currentLogFilename: /data/logs/error.log
+      archivedLogFilenamePattern: /data/logs/error-%d{yyyy-MM-dd-hh}.log.gz
+      archivedFileCount: 6
