@@ -22,7 +22,7 @@ import java.io.IOException;
 @XmlJavaTypeAdapter(value = RepairBucketPointer.XmlAdapter.class)
 @JsonSerialize(using = RepairBucketPointer.JsonSerializeAdapter.class)
 @JsonDeserialize(using = RepairBucketPointer.JsonDeserializeAdapater.class)
-public final class RepairBucketPointer extends LongValue implements Pointer {
+public final class RepairBucketPointer extends LongValue implements BucketPointer {
     protected RepairBucketPointer(final Long value) {
         super(value);
     }
@@ -31,9 +31,12 @@ public final class RepairBucketPointer extends LongValue implements Pointer {
         return new RepairBucketPointer(value);
     }
 
-
     public static RepairBucketPointer map(Row row) {
         return RepairBucketPointer.valueOf(row.getLong(Tables.Pointer.VALUE));
+    }
+
+    public RepairBucketPointer next() {
+        return new RepairBucketPointer(get() + 1);
     }
 
     public static class XmlAdapter extends JaxbLongValueAdapter<RepairBucketPointer> {

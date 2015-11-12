@@ -43,7 +43,7 @@ public class ReaderImpl implements Reader {
     }
 
     @Override public boolean ackMessage(final PopReceipt popReceipt) {
-        final Message messageAt = dataContext.getMessageRepository().getMessageAt(popReceipt.getMessageIndex());
+        final Message messageAt = dataContext.getMessageRepository().getMessage(popReceipt.getMessageIndex());
 
         if (messageAt.getVersion() != popReceipt.getMessageVersion() || messageAt.isVisible()) {
             return false;
@@ -61,7 +61,7 @@ public class ReaderImpl implements Reader {
     }
 
     private Optional<Message> getNowVisibleMessage(InvisibilityMessagePointer pointer, Duration invisiblity) {
-        final Message messageAt = dataContext.getMessageRepository().getMessageAt(pointer);
+        final Message messageAt = dataContext.getMessageRepository().getMessage(pointer);
 
         if (messageAt.isVisible() && !messageAt.isNotAcked()) {
             if (updateInivisiblityTime(messageAt, invisiblity)) {
@@ -83,7 +83,7 @@ public class ReaderImpl implements Reader {
         final Optional<Message> first = messages.stream().filter(m -> m.isNotAcked() && m.isNotVisible()).findFirst();
 
         if (first.isPresent()) {
-            dataContext.getPointerRepository().moveInvisiblityPointerTo(first.get().getIndex());
+            dataContext.getPointerRepository().moveInvisiblityPointerTo(pointer, InvisibilityMessagePointer.valueOf(first.get().getIndex()));
 
             return Optional.empty();
         }
@@ -142,7 +142,7 @@ public class ReaderImpl implements Reader {
     }
 
     private ReaderBucketPointer advanceBucket(ReaderBucketPointer currentBucket) {
-        return dataContext.getPointerRepository().advanceMessageBucketPointer(currentBucket);
+        return dataContext.getPointerRepository().advanceMessageBucketPointer(currentBucket, currentBucket.next());
     }
 
     private MonotonicIndex getLatestMonotonic() {
