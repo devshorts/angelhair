@@ -1,6 +1,5 @@
 package com.godaddy.domains.cassandraqueue.dataAccess;
 
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
