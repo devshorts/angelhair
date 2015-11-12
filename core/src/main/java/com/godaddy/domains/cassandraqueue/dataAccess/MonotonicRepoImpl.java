@@ -6,6 +6,7 @@ import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import org.apache.commons.lang.NotImplementedException;
 
 public class MonotonicRepoImpl implements MonotonicRepository {
     private final Session session;
@@ -18,6 +19,10 @@ public class MonotonicRepoImpl implements MonotonicRepository {
     }
 
     @Override public MonotonicIndex nextMonotonic() {
-        return MonotonicIndex.valueOf(0);
+        throw new NotImplementedException();
+    }
+
+    @Override public MonotonicIndex getCurrent() {
+        throw new NotImplementedException();
     }
 }

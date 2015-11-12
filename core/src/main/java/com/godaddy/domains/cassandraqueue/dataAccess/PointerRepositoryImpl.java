@@ -54,6 +54,10 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
         movePointer(PointerType.INVISIBILITY_POINTER, ptr);
     }
 
+    @Override public BucketPointer getReaderCurrentBucket() {
+        throw new NotImplementedException();
+    }
+
     private void movePointer(PointerType pointerType, Pointer pointer) {
         Statement statement = QueryBuilder.insertInto(Tables.Pointer.TABLE_NAME)
                                           .value(Tables.Pointer.QUEUENAME, queueName.get())

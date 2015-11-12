@@ -26,4 +26,6 @@ public interface PointerRepository {
     void moveMessagePointerTo(BucketPointer ptr);
 
     void moveInvisiblityPointerTo(InvisibilityMessagePointer ptr);
+
+    BucketPointer getReaderCurrentBucket();
 }

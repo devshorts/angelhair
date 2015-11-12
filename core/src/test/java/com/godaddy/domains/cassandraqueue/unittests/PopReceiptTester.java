@@ -24,5 +24,4 @@ public class PopReceiptTester {
         assertThat(components.getMessageIndex()).isEqualTo(monotonicIndex);
         assertThat(components.getMessageVersion()).isEqualTo(version);
     }
-
 }

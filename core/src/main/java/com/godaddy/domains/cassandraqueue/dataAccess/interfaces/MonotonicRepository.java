@@ -4,4 +4,6 @@ import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 
 public interface MonotonicRepository {
     MonotonicIndex nextMonotonic();
+
+    MonotonicIndex getCurrent();
 }

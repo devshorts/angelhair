@@ -5,7 +5,6 @@ import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.BucketPointer;
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
-import com.godaddy.domains.cassandraqueue.model.MessageId;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
@@ -41,7 +40,7 @@ public class ReaderImpl implements Reader {
             return nowVisibleMessage;
         }
 
-        return getAndMark(getCurrentBucket(), invisibility);
+        return getAndMark(getReaderCurrentBucket(), invisibility);
     }
 
     private InvisibilityMessagePointer getCurrentInvisPointer() {
@@ -52,8 +51,8 @@ public class ReaderImpl implements Reader {
         throw new NotImplementedException();
     }
 
-    private BucketPointer getCurrentBucket() {
-        throw new NotImplementedException();
+    private BucketPointer getReaderCurrentBucket() {
+        return dataContext.getPointerRepository().getReaderCurrentBucket();
     }
 
     private Optional<Message> getNowVisibleMessage(InvisibilityMessagePointer pointer, Duration invisiblity) {
@@ -132,57 +131,16 @@ public class ReaderImpl implements Reader {
     }
 
     private boolean monotonPastBucket(final BucketPointer currentBucket) {
-        final BucketPointer currentMonotonicBucket = getLastMonotonic().toBucketPointer(config.getBucketSize());
+        final BucketPointer currentMonotonicBucket = getLatestMonotonic().toBucketPointer(config.getBucketSize());
 
         return currentMonotonicBucket.get() > currentBucket.get();
-    }
-
-    private void closeCompleteBucket(BucketPointer currentBucket) {
-        throw new NotImplementedException();
-        /*
-             all the messages in the bucket are marked as invisible or consumed
-         */
     }
 
     private BucketPointer advanceBucket(BucketPointer currentBucket) {
         return dataContext.getPointerRepository().advanceMessageBucketPointer(currentBucket);
     }
 
-    private boolean bucketHasUnreadMessages(BucketPointer bucketPointer) {
-        throw new NotImplementedException();
-    }
-
-    private BucketPointer getLastBucket(MonotonicIndex maxMonoton) {
-        throw new NotImplementedException();
-    }
-
-    private MonotonicIndex getLastMonotonic() {
-        throw new NotImplementedException();
-    }
-
-    private Optional<MonotonicIndex> jumpMissingBucket(BucketPointer currentBucket, Duration invisiblity) {
-        throw new NotImplementedException();
-        /*
-            If all the messages in the bucket are invisible and marked but the size isn't the size of the bucket
-                get the next monotic value
-                determine the bucket that monotic is in
-                see if a message can be found in the next bucket
-         */
-
-//        closeCompleteBucket(currentBucket);
-//
-//        final MonotonicIndex lastMonotonic = getLastMonotonic();
-//
-//        while (bucketHasUnreadMessages(currentBucket) && currentBucket.get() < getLastBucket(lastMonotonic).get()) {
-//            final Optional<Message> andMark = getAndMark(currentBucket, invisiblity);
-//
-//            if (andMark.isPresent()) {
-//                //return andMark;
-//            }
-//
-//            currentBucket = currentBucket.next();
-//        }
-//
-//        return Optional.empty();
+    private MonotonicIndex getLatestMonotonic() {
+        return dataContext.getMonotonicRepository().getCurrent();
     }
 }
