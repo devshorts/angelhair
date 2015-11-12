@@ -20,7 +20,7 @@ import java.io.IOException;
 @XmlJavaTypeAdapter(value = MonotonicIndex.XmlAdapter.class)
 @JsonSerialize(using = MonotonicIndex.JsonSerializeAdapter.class)
 @JsonDeserialize(using = MonotonicIndex.JsonDeserializeAdapater.class)
-public final class MonotonicIndex extends LongValue {
+public final class MonotonicIndex extends LongValue implements MessagePointer {
     protected MonotonicIndex(final Long value) {
         super(value);
     }

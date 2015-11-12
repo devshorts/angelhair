@@ -33,6 +33,10 @@ public final class BucketPointer extends LongValue {
         return new BucketPointer(get() + 1);
     }
 
+    public MonotonicIndex startOf(int bucketsize) {
+        return MonotonicIndex.valueOf(get() * bucketsize);
+    }
+
     public static class XmlAdapter extends JaxbLongValueAdapter<BucketPointer> {
 
         @Nonnull @Override protected BucketPointer createNewInstance(final Long value) {

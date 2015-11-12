@@ -11,7 +11,7 @@ import java.util.List;
 public interface MessageRepository {
     void putMessage(Message message, Duration initialInvisibility);
 
-    void markMessageInvisible(MonotonicIndex message, Duration duration);
+    void markMessageInvisible(Message message, Duration duration);
 
     void ackMessage(MonotonicIndex messageId);
 

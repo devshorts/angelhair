@@ -17,6 +17,14 @@ public class Message {
     private boolean isAcked;
 
     public boolean isVisible(){
-        return !isAcked && nextVisiblityAt.map(AbstractInstant::isAfterNow).orElse(true);
+        return nextVisiblityAt.map(AbstractInstant::isAfterNow).orElse(true);
+    }
+
+    public boolean isNotAcked(){
+        return !isAcked;
+    }
+
+    public boolean isNotVisible(){
+        return !isVisible();
     }
 }
