@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
-classname="ServiceApplication"
+classname="com.godaddy.domains.cassandraqueue.ServiceApplication"
 
 command="server"
-
 
 conf_dir=/data/conf
 

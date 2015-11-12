@@ -8,7 +8,7 @@
 
     <parent>
         <groupId>com.godaddy.domains</groupId>
-        <artifactId>cassandra-queue</artifactId>
+        <artifactId>cassandra-queue-root</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -20,7 +20,7 @@
         </repository>
     </repositories>
 
-    <artifactId>cassandra-queue-core</artifactId>
+    <artifactId>cassandra-queue</artifactId>
     <name>Service Core</name>
 
     <dependencies>
@@ -98,12 +98,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.godaddy.domains</groupId>
-            <artifactId>cassandra-queue-model</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.jcabi</groupId>
             <artifactId>jcabi-manifests</artifactId>
             <version>1.1</version>
@@ -127,6 +121,11 @@
         <dependency>
             <groupId>com.godaddy</groupId>
             <artifactId>logging</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-assistedinject</artifactId>
         </dependency>
 
     </dependencies>
@@ -219,7 +218,7 @@
                     <imageTags>
                         <tag>${buildNumber}</tag>
                     </imageTags>
-                    <imageName>${dockerRepo}/cassandra-queue-service_core</imageName>
+                    <imageName>${dockerRepo}/cassandra-queue</imageName>
                     <dockerDirectory>${project.basedir}/docker</dockerDirectory>
                     <pullOnBuild>${docker.pullOnBuild}</pullOnBuild>
                     <resources>

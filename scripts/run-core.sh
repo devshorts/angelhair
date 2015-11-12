@@ -24,7 +24,7 @@ mkdir -p `pwd`/logs/core
 
 GIT_SHA=`git rev-parse --short HEAD`
 
-image="dom-docker.cloud.dev.phx3.gdg:5000/cassandra-queue-service:${GIT_SHA}_dev"
+image="dom-docker.cloud.dev.phx3.gdg:5000/cassandra-queue:${GIT_SHA}_dev"
 
 echo ${image}
 docker run -it \
