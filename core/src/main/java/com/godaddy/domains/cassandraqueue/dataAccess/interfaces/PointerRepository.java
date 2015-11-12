@@ -3,7 +3,6 @@ package com.godaddy.domains.cassandraqueue.dataAccess.interfaces;
 import com.godaddy.domains.cassandraqueue.model.BucketPointer;
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
-import com.godaddy.domains.cassandraqueue.model.PointerType;
 
 public interface PointerRepository {
     /**
@@ -17,7 +16,7 @@ public interface PointerRepository {
     BucketPointer advanceMessageBucketPointer(BucketPointer ptr);
 
     /**
-     * Condtiinoal update of either the minimum of the current in the db or the destination
+     * Conditional update of either the minimum of the current in the db or the destination
      * @param destination
      */
     void moveInvisiblityPointerTo(MonotonicIndex destination);
@@ -27,6 +26,4 @@ public interface PointerRepository {
     void moveMessagePointerTo(BucketPointer ptr);
 
     void moveInvisiblityPointerTo(InvisibilityMessagePointer ptr);
-
-    void movePointer(PointerType pointerType, Long pointerValue);
 }
