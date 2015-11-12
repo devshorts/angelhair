@@ -53,4 +53,8 @@ public class MessageRepositoryImpl implements MessageRepository {
     @Override public Message getMessageAt(final MessagePointer pointer) {
         throw new NotImplementedException();
     }
+
+    @Override public boolean tombstoneExists(final BucketPointer bucketPointer) {
+        throw new NotImplementedException();
+    }
 }

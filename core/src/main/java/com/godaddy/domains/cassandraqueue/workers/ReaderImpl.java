@@ -7,6 +7,7 @@ import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MessageId;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
+import com.godaddy.domains.cassandraqueue.model.PopReceipt;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -47,7 +48,7 @@ public class ReaderImpl implements Reader {
         return dataContext.getPointerRepository().getCurrentInvisPointer();
     }
 
-    @Override public void ackMessage(final MessageId messageId) {
+    @Override public void ackMessage(final PopReceipt popReceipt) {
         throw new NotImplementedException();
     }
 

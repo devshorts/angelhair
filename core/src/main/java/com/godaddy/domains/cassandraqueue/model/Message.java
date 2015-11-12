@@ -35,20 +35,4 @@ public class Message {
     public boolean isNotVisible(){
         return !isVisible();
     }
-
-    public String getPopReceipt() {
-        final String receiptString = String.format("%s:%s", index, version);
-
-        return Base64.getEncoder().withoutPadding().encodeToString(receiptString.getBytes());
-    }
-
-    public static Tuple2<MonotonicIndex, Integer> parsePopReceipt(String popReceipt){
-        final byte[] rawReceipt = Base64.getDecoder().decode(popReceipt);
-
-        final String receipt = new String(rawReceipt);
-
-        final String[] components = receipt.split(":");
-
-        return Tuple.tuple(MonotonicIndex.valueOf(Long.parseLong(components[0])), Integer.parseInt(components[1]));
-    }
 }

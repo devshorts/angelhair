@@ -1,6 +1,7 @@
 package com.godaddy.domains.cassandraqueue.api.v1;
 
 import com.godaddy.domains.cassandraqueue.model.Message;
+import com.godaddy.domains.cassandraqueue.model.PopReceipt;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.godaddy.domains.cassandraqueue.workers.Reader;
 import com.godaddy.logging.Logger;
@@ -52,7 +53,8 @@ public class QueueResource {
             Response.noContent();
         }
 
-        final String popReceipt = nextMessage.get().getPopReceipt();
+        final String popReceipt = PopReceipt.from(nextMessage.get()).toString();
+
         final String message = nextMessage.get().getBlob();
         final GetMessageResponse response = new GetMessageResponse(
                 popReceipt,

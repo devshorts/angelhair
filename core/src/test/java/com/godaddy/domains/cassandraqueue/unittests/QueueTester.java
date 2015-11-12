@@ -1,14 +1,8 @@
 package com.godaddy.domains.cassandraqueue.unittests;
 
 import com.datastax.driver.core.Session;
-<<<<<<< Updated upstream
 import com.godaddy.domains.cassandraqueue.unittests.modules.InMemorySessionProvider;
 import com.godaddy.domains.cassandraqueue.unittests.server.LiveServer;
-=======
-import com.godaddy.domains.cassandraqueue.model.Message;
-import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
-import org.jooq.lambda.tuple.Tuple2;
->>>>>>> Stashed changes
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

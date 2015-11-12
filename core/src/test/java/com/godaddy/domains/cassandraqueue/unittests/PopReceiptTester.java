@@ -2,7 +2,7 @@ package com.godaddy.domains.cassandraqueue.unittests;
 
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
-import org.jooq.lambda.tuple.Tuple2;
+import com.godaddy.domains.cassandraqueue.model.PopReceipt;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,13 +15,14 @@ public class PopReceiptTester {
 
         Message m = Message.builder().index(monotonicIndex).version(version).build();
 
-        final String popReceipt = m.getPopReceipt();
+        final PopReceipt popReceipt = PopReceipt.from(m);
+
         System.out.println(popReceipt);
 
-        final Tuple2<MonotonicIndex, Integer> components = Message.parsePopReceipt(popReceipt);
+        final PopReceipt components = PopReceipt.valueOf(popReceipt.toString());
 
-        assertThat(components.v1()).isEqualTo(monotonicIndex);
-        assertThat(components.v2()).isEqualTo(version);
+        assertThat(components.getMessageIndex()).isEqualTo(monotonicIndex);
+        assertThat(components.getMessageVersion()).isEqualTo(version);
     }
 
 }
