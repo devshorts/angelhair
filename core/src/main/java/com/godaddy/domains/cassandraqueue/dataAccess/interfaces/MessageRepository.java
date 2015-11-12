@@ -3,6 +3,7 @@ package com.godaddy.domains.cassandraqueue.dataAccess.interfaces;
 import com.godaddy.domains.cassandraqueue.model.BucketPointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MessagePointer;
+import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

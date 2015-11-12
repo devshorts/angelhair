@@ -3,9 +3,11 @@ package com.godaddy.domains.cassandraqueue.modules;
 import com.godaddy.domains.cassandraqueue.dataAccess.MessageRepositoryImpl;
 import com.godaddy.domains.cassandraqueue.dataAccess.MonotonicRepoImpl;
 import com.godaddy.domains.cassandraqueue.dataAccess.PointerRepositoryImpl;
+import com.godaddy.domains.cassandraqueue.dataAccess.QueueRepositoryImpl;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MonotonicRepository;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.PointerRepository;
+import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactoryImpl;
 import com.godaddy.domains.cassandraqueue.factories.MessageRepoFactory;
@@ -29,6 +31,7 @@ public class DataAccessModule extends AbstractModule {
                         .implement(MonotonicRepository.class, MonotonicRepoImpl.class)
                         .build(MonotonicRepoFactory.class));
 
+        bind(QueueRepository.class).to(QueueRepositoryImpl.class);
         bind(DataContextFactory.class).to(DataContextFactoryImpl.class);
     }
 }

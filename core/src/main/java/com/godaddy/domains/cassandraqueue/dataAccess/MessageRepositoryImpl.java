@@ -50,7 +50,11 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                           .value(Tables.Message.NEXT_VISIBLE_ON, now.plus(initialInvisibility).toDate())
                                           .value(Tables.Message.CREATED_DATE, now.toDate());
 
-        session.execute(statement);
+        final boolean wasInserted = session.execute(statement).wasApplied();
+
+        if (!wasInserted) {
+            throw new RuntimeException("This should not have happend");
+        }
     }
 
     @Override
@@ -133,6 +137,4 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
 
         return getOne(session.execute(query), Message::fromRow);
     }
-
-
 }
