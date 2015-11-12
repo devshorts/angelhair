@@ -20,7 +20,7 @@ CREATE TABLE message (
   acked boolean,
   polled boolean,
   next_visible_on timestamp,
-  created_date timestamp
+  created_date timestamp,
 
   PRIMARY KEY ((queuename, bucket_num), monoton)
 );
