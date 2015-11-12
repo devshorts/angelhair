@@ -22,7 +22,7 @@ public class MessageRepositoryImpl implements MessageRepository {
         this.queueName = queueName;
     }
 
-    @Override public void putMessage(final Message message) {
+    @Override public void putMessage(final Message message, Duration initialInvisibility) {
         // store message
     }
 

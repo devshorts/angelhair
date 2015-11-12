@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.godaddy.domains.common.valuetypes.StringValue;
 import com.godaddy.domains.common.valuetypes.adapters.xml.JaxbStringValueAdapter;
 import jdk.nashorn.internal.ir.annotations.Immutable;
+import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -26,11 +27,11 @@ public final class QueueName extends StringValue {
         super(value);
     }
 
-    public static QueueName valueOf(String value) {
+    public static QueueName valueOf(@NonNull String value) {
         return new QueueName(StringUtils.trimToEmpty(value));
     }
 
-    public static QueueName valueOf(StringValue value) {
+    public static QueueName valueOf(@NonNull StringValue value) {
         return QueueName.valueOf(value.get());
     }
 

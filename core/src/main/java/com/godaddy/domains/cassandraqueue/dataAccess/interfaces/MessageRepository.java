@@ -8,7 +8,7 @@ import org.joda.time.Duration;
 import java.util.List;
 
 public interface MessageRepository {
-    void putMessage(Message message);
+    void putMessage(Message message, Duration initialInvisibility);
 
     void markMessageInvisible(MonotonicIndex message, Duration duration);
 
