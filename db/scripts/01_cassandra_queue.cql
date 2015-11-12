@@ -16,6 +16,7 @@ CREATE TABLE message (
   bucket_num bigint,
   monoton bigint,
   message text,
+  version int,
   acked boolean,
   polled boolean,
   next_visible_on timestamp,
