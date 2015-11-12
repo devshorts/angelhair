@@ -1,3 +1,7 @@
+CREATE TABLE queue (
+  queuename text PRIMARY KEY
+);
+
 CREATE TABLE pointer (
   queuename text,
   pointer_type text,

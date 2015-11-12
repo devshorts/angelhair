@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PopReceiptTester {
     @Test
-    public void test_roundtrip() throws Exception {
+    public void test_round_trip() throws Exception {
         final MonotonicIndex monotonicIndex = MonotonicIndex.valueOf(42);
         final int version = 3;
 
