@@ -45,13 +45,7 @@ public class PingResource {
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK") })
     public Response getDomain(@PathParam("echo") String echo) {
 
-        Object response = new Object() {
-            @Getter
-
-            String val = echo;
-        };
-
-        return Response.ok(response)
+        return Response.ok(echo)
                        .status(Response.Status.OK)
                        .build();
     }

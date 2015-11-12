@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.godaddy.domains.cassandraqueue.handlers.ParameterHandlerProvider;
 import com.godaddy.domains.cassandraqueue.modules.DataAccessModule;
+import com.godaddy.domains.cassandraqueue.modules.Modules;
+import com.google.inject.Module;
 import com.hubspot.dropwizard.guice.GuiceBundle;
 import com.wordnik.swagger.config.ConfigFactory;
 import com.wordnik.swagger.config.ScannerFactory;
@@ -47,6 +49,10 @@ public class ServiceApplication extends Application<ServiceConfiguration> {
         initializeDepedencyInjection(bootstrap);
     }
 
+    protected List<Module> getModules() {
+        return Modules.modules;
+    }
+
     private void initializeViews(final Bootstrap<ServiceConfiguration> bootstrap) {
         List<ViewRenderer> viewRenders = new ArrayList<>();
 
@@ -58,12 +64,14 @@ public class ServiceApplication extends Application<ServiceConfiguration> {
     }
 
     private void initializeDepedencyInjection(final Bootstrap<ServiceConfiguration> bootstrap) {
-        GuiceBundle<ServiceConfiguration> guiceBundle =
-                GuiceBundle.<ServiceConfiguration>newBuilder()
-                           .addModule(new DataAccessModule())
-                           .enableAutoConfig(getClass().getPackage().getName())
-                           .setConfigClass(ServiceConfiguration.class)
-                           .build();
+        final GuiceBundle.Builder<ServiceConfiguration> serviceConfigurationBuilder = GuiceBundle.<ServiceConfiguration>newBuilder();
+
+        getModules().stream().forEach(serviceConfigurationBuilder::addModule);
+
+        GuiceBundle<ServiceConfiguration> guiceBundle = serviceConfigurationBuilder
+                .enableAutoConfig(ServiceApplication.class.getPackage().getName())
+                .setConfigClass(ServiceConfiguration.class)
+                .build();
 
         bootstrap.addBundle(guiceBundle);
     }
