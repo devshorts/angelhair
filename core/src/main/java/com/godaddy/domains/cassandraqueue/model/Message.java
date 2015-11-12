@@ -18,7 +18,7 @@ public class Message {
 
     private boolean isAcked;
 
-    private int version;
+    private int version = 1;
 
     public boolean isVisible() {
         return nextVisiblityAt.map(AbstractInstant::isAfterNow).orElse(true);
