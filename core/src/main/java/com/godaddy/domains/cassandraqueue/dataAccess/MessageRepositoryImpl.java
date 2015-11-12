@@ -1,5 +1,6 @@
 package com.godaddy.domains.cassandraqueue.dataAccess;
 
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -39,10 +40,12 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
     @Override
     public void putMessage(final Message message, final Duration initialInvisibility) {
         final DateTime now = DateTime.now(DateTimeZone.UTC);
+        final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
+
         Statement statement = QueryBuilder.insertInto(Tables.Message.TABLE_NAME)
                                           .ifNotExists()
                                           .value(Tables.Message.QUEUENAME, queueName.get())
-                                          .value(Tables.Message.BUCKET_NUM, message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get())
+                                          .value(Tables.Message.BUCKET_NUM, bucketPointer)
                                           .value(Tables.Message.MONOTON, message.getIndex().get())
                                           .value(Tables.Message.VERSION, 1)
                                           .value(Tables.Message.ACKED, false)
@@ -81,15 +84,18 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         // conditionally ack if message version is the same as in the message
         //  if was able to update then return true, otehrwise false
 
+        final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
+
         Statement statement = QueryBuilder.update(Tables.Message.TABLE_NAME)
                                           .with(set(Tables.Message.ACKED, true))
                                           .and(set(Tables.Message.VERSION, message.getVersion() + 1))
                                           .where(eq(Tables.Message.QUEUENAME, queueName.get()))
-                                          .and(eq(Tables.Message.BUCKET_NUM, message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize())))
+                                          .and(eq(Tables.Message.BUCKET_NUM, bucketPointer))
                                           .and(eq(Tables.Message.MONOTON, message.getIndex().get()))
                                           .onlyIf(eq(Tables.Message.VERSION, message.getVersion()));
 
-        return session.execute(statement).wasApplied();
+        final ResultSet resultSet = session.execute(statement);
+        return resultSet.wasApplied();
     }
 
     @Override
