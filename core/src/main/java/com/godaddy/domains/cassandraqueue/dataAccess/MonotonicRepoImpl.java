@@ -9,7 +9,6 @@ import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
-import org.apache.commons.lang.NotImplementedException;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
@@ -31,10 +30,6 @@ public class MonotonicRepoImpl extends RepositoryBase implements MonotonicReposi
                                           .value(Tables.Monoton.QUEUENAME, queueName)
                                           .value(Tables.Monoton.VALUE, 1)
                                           .ifNotExists();
-
-        if(session.execute(statement).wasApplied()) {
-            return MonotonicIndex.valueOf(1);
-        }
 
         while(nextMonotonic == null) {
             Long current = getCurrent().get();
