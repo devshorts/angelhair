@@ -1,61 +1,119 @@
 package com.godaddy.domains.cassandraqueue.dataAccess;
 
 import com.datastax.driver.core.Session;
+import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
 import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MessagePointer;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
+import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import org.apache.commons.lang.NotImplementedException;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
 
 import java.util.List;
+import java.util.Optional;
+
+import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
 
 public class MessageRepositoryImpl implements MessageRepository {
     private final Session session;
     private final QueueName queueName;
+    private final BucketConfiguration bucketConfiguration;
 
     @Inject
-    public MessageRepositoryImpl(Session session, @Assisted QueueName queueName) {
+    public MessageRepositoryImpl(Session session, @Assisted QueueName queueName, BucketConfiguration bucketConfiguration) {
         this.session = session;
         this.queueName = queueName;
+        this.bucketConfiguration = bucketConfiguration;
     }
 
-    @Override public void putMessage(final Message message, Duration initialInvisibility) {
-        // store message
-        throw new NotImplementedException();
+    @Override
+    public void putMessage(final Message message, final Duration initialInvisibility) {
+        final DateTime now = DateTime.now(DateTimeZone.UTC);
+        Statement statement = QueryBuilder.insertInto(Tables.Message.TABLE_NAME)
+                                          .ifNotExists()
+                                          .value(Tables.Message.QUEUENAME, queueName.get())
+                                          .value(Tables.Message.BUCKET_NUM, message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get())
+                                          .value(Tables.Message.MONOTON, message.getIndex().get())
+                                          .value(Tables.Message.VERSION, 1)
+                                          .value(Tables.Message.ACKED, false)
+                                          .value(Tables.Message.NEXT_VISIBLE_ON, now.plus(initialInvisibility).toDateTime())
+                                          .value(Tables.Message.CREATED_DATE, now.toDateTime());
+
+        session.execute(statement);
     }
 
-    @Override public boolean markMessageInvisible(final Message message, final Duration duration) {
+    @Override
+    public boolean markMessageInvisible(final Message message, final Duration duration) {
         // update message invisiblity value to utc now + duration
         // conditionally update index to use invisiblity if version the same
-        throw new NotImplementedException();
+
+        final DateTime now = DateTime.now(DateTimeZone.UTC).plus(duration);
+
+        Statement statement = QueryBuilder.update(Tables.Message.TABLE_NAME)
+                                          .with(set(Tables.Message.NEXT_VISIBLE_ON, now.toDateTime()))
+                                          .and(set(Tables.Message.VERSION, message.getVersion() + 1))
+                                          .where(eq(Tables.Message.QUEUENAME, queueName.get()))
+                                          .and(eq(Tables.Message.BUCKET_NUM, message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize())))
+                                          .and(eq(Tables.Message.MONOTON, message.getIndex().get()))
+                                          .onlyIf(eq(Tables.Message.VERSION, message.getVersion()));
+
+
+        return session.execute(statement).wasApplied();
     }
 
-    @Override public boolean ackMessage(final Message message) {
+    @Override
+    public boolean ackMessage(final Message message) {
         // conditionally ack if message version is the same as in the message
         //  if was able to update then return true, otehrwise false
 
-        throw new NotImplementedException();
+        Statement statement = QueryBuilder.update(Tables.Message.TABLE_NAME)
+                                          .with(set(Tables.Message.ACKED, true))
+                                          .and(set(Tables.Message.VERSION, message.getVersion() + 1))
+                                          .where(eq(Tables.Message.QUEUENAME, queueName.get()))
+                                          .and(eq(Tables.Message.BUCKET_NUM, message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize())))
+                                          .and(eq(Tables.Message.MONOTON, message.getIndex().get()))
+                                          .onlyIf(eq(Tables.Message.VERSION, message.getVersion()));
+
+        return session.execute(statement).wasApplied();
     }
 
-    @Override public List<Message> getMessages(final ReaderBucketPointer bucketPointer) {
+    @Override
+    public List<Message> getMessages(final ReaderBucketPointer bucketPointer) {
         // list all messages in bucket
         throw new NotImplementedException();
     }
 
-    @Override public void tombstone(final ReaderBucketPointer bucketPointer) {
+    @Override
+    public void tombstone(final ReaderBucketPointer bucketPointer) {
         // mark the bucket as tombstoned
+
+        final DateTime now = DateTime.now(DateTimeZone.UTC);
+        Statement statement = QueryBuilder.insertInto(Tables.Message.TABLE_NAME)
+                                          .ifNotExists()
+                                          .value(Tables.Message.QUEUENAME, queueName.get())
+                                          .value(Tables.Message.BUCKET_NUM, bucketPointer.get())
+                                          .value(Tables.Message.MONOTON, -1)
+                                          .value(Tables.Message.CREATED_DATE, now.toDateTime());
+
+        session.execute(statement);
+    }
+
+    @Override
+    public Message getMessageAt(final MessagePointer pointer) {
         throw new NotImplementedException();
     }
 
-    @Override public Message getMessageAt(final MessagePointer pointer) {
-        throw new NotImplementedException();
-    }
-
-    @Override public boolean tombstoneExists(final ReaderBucketPointer bucketPointer) {
+    @Override
+    public Optional<DateTime> tombstoneExists(final RepairBucketPointer bucketPointer) {
         throw new NotImplementedException();
     }
 }
