@@ -26,10 +26,7 @@ public class MonotonicRepoImpl extends RepositoryBase implements MonotonicReposi
     @Override public MonotonicIndex nextMonotonic() {
         MonotonicIndex nextMonotonic = null;
 
-        Statement statement = QueryBuilder.insertInto(Tables.Monoton.TABLE_NAME)
-                                          .value(Tables.Monoton.QUEUENAME, queueName)
-                                          .value(Tables.Monoton.VALUE, 1)
-                                          .ifNotExists();
+        initializeMonotonicValue();
 
         while(nextMonotonic == null) {
             Long current = getCurrent().get();
@@ -54,5 +51,14 @@ public class MonotonicRepoImpl extends RepositoryBase implements MonotonicReposi
         MonotonicIndex current = getOne(session.execute(statement), MonotonicIndex::map);
 
         return current == null ? MonotonicIndex.valueOf(1) : current;
+    }
+
+    private void initializeMonotonicValue() {
+        Statement statement = QueryBuilder.insertInto(Tables.Monoton.TABLE_NAME)
+                                          .value(Tables.Monoton.QUEUENAME, queueName)
+                                          .value(Tables.Monoton.VALUE, 1)
+                                          .ifNotExists();
+
+        session.execute(statement);
     }
 }
