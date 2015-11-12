@@ -8,6 +8,12 @@ public final class Tables {
         public static final String VALUE = "value";
     }
 
+    public static class Monoton {
+        public static final String TABLE_NAME = "monoton";
+        public static final String QUEUENAME = "queuename";
+        public static final String VALUE = "value";
+    }
+
     public static class Message {
 
         public static final String TABLE_NAME = "message";
