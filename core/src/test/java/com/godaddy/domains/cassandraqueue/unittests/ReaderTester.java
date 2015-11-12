@@ -1,27 +1,27 @@
 package com.godaddy.domains.cassandraqueue.unittests;
 
+import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
+import com.google.inject.Injector;
+import org.joda.time.Duration;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ReaderTester {
+public class ReaderTester extends TestBase {
     @Test
-    public void test_roundtrip() throws Exception {
-        final MonotonicIndex monotonicIndex = MonotonicIndex.valueOf(42);
-        final int version = 3;
+    public void put_message_should_succeed() throws Exception {
+        final Injector defaultInjector = getDefaultInjector();
 
-        Message m = Message.builder().index(monotonicIndex).version(version).build();
+        final MessageRepository messageRepository = defaultInjector.getInstance(MessageRepository.class);
 
-        final PopReceipt popReceipt = PopReceipt.from(m);
+        messageRepository.putMessage(
+                Message.builder()
+                       .blob("hi")
+                       .index(MonotonicIndex.valueOf(3))
+                       .build(), Duration.standardSeconds(30));
 
-        System.out.println(popReceipt);
-
-        final PopReceipt components = PopReceipt.valueOf(popReceipt.toString());
-
-        assertThat(components.getMessageIndex()).isEqualTo(monotonicIndex);
-        assertThat(components.getMessageVersion()).isEqualTo(version);
     }
 }
