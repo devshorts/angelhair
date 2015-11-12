@@ -37,9 +37,10 @@ public class QueueTester {
     public void test_injector() throws Exception {
         final Session session = CqlDb.create();
 
-        final Injector injector = Guice.createInjector(ModuleUtils.mergeModules(Modules.modules,
-                                                                                new InMemorySessionProvider(session),
-                                                                                new MockEnvironmentModule<>(new ServiceConfiguration())));
+        final Injector injector = Guice.createInjector(
+                ModuleUtils.mergeModules(Modules.modules,
+                                         new InMemorySessionProvider(session),
+                                         new MockEnvironmentModule<>(new ServiceConfiguration())));
 
         final DataContextFactory instance = injector.getInstance(DataContextFactory.class);
 

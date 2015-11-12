@@ -12,4 +12,6 @@ public class BucketConfiguration {
     private int bucketSize = 20;
 
     private Duration repairWorkerTimeout = Duration.standardSeconds(30);
+
+    private Duration repairWorkerPollFrequency = Duration.standardSeconds(1);
 }
