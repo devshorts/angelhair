@@ -20,7 +20,7 @@ import java.io.IOException;
 @XmlJavaTypeAdapter(value = InvisibilityMessagePointer.XmlAdapter.class)
 @JsonSerialize(using = InvisibilityMessagePointer.JsonSerializeAdapter.class)
 @JsonDeserialize(using = InvisibilityMessagePointer.JsonDeserializeAdapater.class)
-public final class InvisibilityMessagePointer extends LongValue {
+public final class InvisibilityMessagePointer extends LongValue implements MessagePointer {
     protected InvisibilityMessagePointer(final Long value) {
         super(value);
     }
