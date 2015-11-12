@@ -3,6 +3,7 @@ package com.godaddy.domains.cassandraqueue.dataAccess.interfaces;
 import com.godaddy.domains.cassandraqueue.model.BucketPointer;
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
+import com.godaddy.domains.cassandraqueue.model.PointerType;
 
 public interface PointerRepository {
     /**
@@ -22,4 +23,10 @@ public interface PointerRepository {
     void moveInvisiblityPointerTo(MonotonicIndex destination);
 
     InvisibilityMessagePointer getCurrentInvisPointer();
+
+    void moveMessagePointerTo(BucketPointer ptr);
+
+    void moveInvisiblityPointerTo(InvisibilityMessagePointer ptr);
+
+    void movePointer(PointerType pointerType, Long pointerValue);
 }
