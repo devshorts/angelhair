@@ -32,7 +32,7 @@ public class QueueResource {
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK") })
     public Response getMessage(
             @PathParam("queueName") QueueName queueName,
-            @QueryParam("invisibilityTime") Duration invisibilityTime) {
+            @QueryParam("invisibilityTime") long invisibilityTime) {
 
         // Need to get pop receipt + message
 
@@ -52,7 +52,7 @@ public class QueueResource {
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK") })
     public Response putMessage(
             @PathParam("queueName") QueueName queueName,
-            @QueryParam("initialInvisibilityTime") Duration initialInvisibilityTime,
+            @QueryParam("initialInvisibilityTime") long initialInvisibilityTime,
             String message) {
 
         // Put message, initially invisible for initialInvisibilityTime
@@ -76,7 +76,6 @@ public class QueueResource {
             @QueryParam("popReceipt") String popReceipt) {
 
         // Put message, initially invisible for initialInvisibilityTime
-
 
         Object response = new Object() {
 

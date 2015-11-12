@@ -3,6 +3,7 @@ package com.godaddy.domains.cassandraqueue;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.godaddy.domains.cassandraqueue.handlers.ParameterHandlerProvider;
 import com.godaddy.domains.cassandraqueue.modules.DataAccessModule;
 import com.hubspot.dropwizard.guice.GuiceBundle;
 import com.wordnik.swagger.config.ConfigFactory;
@@ -80,7 +81,7 @@ public class ServiceApplication extends Application<ServiceConfiguration> {
 
         run.add(this::configureDiscoverableApiHelp);
 
-        run.add(this::configureLogging);
+        run.add(this::configureTinyTypeParamterBindings);
 
         run.stream().forEach(i -> i.accept(config, env));
     }
@@ -90,8 +91,8 @@ public class ServiceApplication extends Application<ServiceConfiguration> {
         env.getAdminContext().stop();
     }
 
-    private void configureLogging(final ServiceConfiguration serviceConfiguration, final Environment environment) {
-
+    private void configureTinyTypeParamterBindings(final ServiceConfiguration serviceConfiguration, final Environment environment) {
+        environment.jersey().register(new ParameterHandlerProvider());
     }
 
     private void configureDiscoverableApiHelp(

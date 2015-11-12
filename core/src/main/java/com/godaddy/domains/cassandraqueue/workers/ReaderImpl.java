@@ -3,14 +3,19 @@ package com.godaddy.domains.cassandraqueue.workers;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.BucketPointer;
+import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MessageId;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+import org.joda.time.Duration;
 
+import java.util.List;
 import java.util.Optional;
+
+import static java.util.stream.Collectors.toList;
 
 public class ReaderImpl implements Reader {
     private final DataContext dataContext;
@@ -20,19 +25,52 @@ public class ReaderImpl implements Reader {
         dataContext = dataContextFactory.forQueue(queueName);
     }
 
-    @Override public Message nextMessage() {
-        return null;
+    @Override public Optional<Message> nextMessage(Duration invisibility) {
+        final Optional<Message> nowVisibleMessage = getNowVisibleMessage(invisibility);
+
+        if (nowVisibleMessage.isPresent()) {
+            return nowVisibleMessage;
+        }
+
+        return getAndMark(getCurrentBucket(), invisibility);
     }
 
     @Override public void ackMessage(final MessageId messageId) {
 
     }
 
-    private BucketPointer getCurrentBucket(){
+    private BucketPointer getCurrentBucket() {
         return null;
     }
 
-    private Optional<MonotonicIndex> getAndMark(BucketPointer currentBucket){
+    private Optional<Message> getNowVisibleMessage(InvisibilityMessagePointer pointer, Duration invisiblity) {
+        final Message messageAt = dataContext.getMessageRepository().getMessageAt(pointer);
+
+        if (messageAt.isVisible()) {
+            if (updateInivisiblityTime(messageAt, invisiblity)) {
+                return Optional.of(messageAt);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private boolean updateInivisiblityTime(final Message message, final Duration invisiblity) {
+        // conditionally update index to use invisiblity if version the same
+
+        return false;
+    }
+
+    private Optional<Message> getAndMark(BucketPointer currentBucket, Duration invisiblity) {
+
+        final List<Message> collect =
+                dataContext.getMessageRepository()
+                           .getMessages(currentBucket)
+                           .stream()
+                           .filter(Message::isVisible)
+                           .collect(toList());
+
+
         /*
             if an unread visible message exists
                 make invisible for duration
@@ -42,29 +80,29 @@ public class ReaderImpl implements Reader {
         return Optional.empty();
     }
 
-    private void closeCompleteBucket(BucketPointer currentBucket){
+    private void closeCompleteBucket(BucketPointer currentBucket) {
         /*
              all the messages in the bucket are marked as invisible or consumed
          */
     }
 
-    private BucketPointer getNextBucket(BucketPointer currentBucket){
+    private BucketPointer getNextBucket(BucketPointer currentBucket) {
         return null;
     }
 
-    private boolean bucketHasUnreadMessages(BucketPointer bucketPointer){
+    private boolean bucketHasUnreadMessages(BucketPointer bucketPointer) {
         return false;
     }
 
-    private BucketPointer getLastBucket(MonotonicIndex maxMonoton){
+    private BucketPointer getLastBucket(MonotonicIndex maxMonoton) {
         return null;
     }
 
-    private MonotonicIndex getLastMonotonic(){
+    private MonotonicIndex getLastMonotonic() {
         return null;
     }
 
-    private Optional<MonotonicIndex> jumpMissingBucket(BucketPointer currentBucket){
+    private Optional<MonotonicIndex> jumpMissingBucket(BucketPointer currentBucket) {
         /*
             If all the messages in the bucket are invisible and marked but the size isn't the size of the bucket
                 get the next monotic value
@@ -76,10 +114,10 @@ public class ReaderImpl implements Reader {
 
         final MonotonicIndex lastMonotonic = getLastMonotonic();
 
-        while(bucketHasUnreadMessages(currentBucket) && currentBucket.get() < getLastBucket(lastMonotonic).get()){
+        while (bucketHasUnreadMessages(currentBucket) && currentBucket.get() < getLastBucket(lastMonotonic).get()) {
             final Optional<MonotonicIndex> andMark = getAndMark(currentBucket);
 
-            if(andMark.isPresent()){
+            if (andMark.isPresent()) {
                 return andMark;
             }
 

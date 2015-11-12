@@ -1,6 +1,6 @@
 CREATE TABLE pointer (
   queuename text,
-  pointer_id text,
+  pointer_type text,
   value bigint,
 
   PRIMARY KEY (queuename, pointer_type)
@@ -16,6 +16,7 @@ CREATE TABLE message (
   bucket_num bigint,
   monoton bigint,
   message text,
+  version int,
   acked boolean,
   polled boolean,
   next_visible_on timestamp,
