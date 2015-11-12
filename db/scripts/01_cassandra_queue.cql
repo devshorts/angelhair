@@ -1,6 +1,6 @@
 CREATE TABLE pointer (
   queuename text,
-  pointer_id text,
+  pointer_type text,
   value bigint,
 
   PRIMARY KEY (queuename, pointer_type)
