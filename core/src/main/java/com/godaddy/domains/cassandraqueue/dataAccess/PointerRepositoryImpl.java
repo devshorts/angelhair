@@ -39,7 +39,7 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
             final InvisibilityMessagePointer original, final InvisibilityMessagePointer destination) {
 
         //If the destination is less than the current pointer value, move the pointer.
-        InvisibilityMessagePointer pointer = movePointer(PointerType.INVISIBILITY_POINTER, original, destination, gt(Tables.Pointer.VALUE, destination));
+        InvisibilityMessagePointer pointer = movePointer(PointerType.INVISIBILITY_POINTER, original, destination, pointerGreaterThanClause(destination));
 
         //If the pointer was not moved, attempt to move the pointer to the destination if the original pointer value equals the current pointer value.
         return pointer.get().equals(original.get()) ?
@@ -86,5 +86,9 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
 
     private Clause pointerEqualsClause(Pointer pointer) {
         return eq(Tables.Pointer.VALUE, pointer.get());
+    }
+
+    private Clause pointerGreaterThanClause(Pointer pointer) {
+        return gt(Tables.Pointer.VALUE, pointer.get());
     }
 }
