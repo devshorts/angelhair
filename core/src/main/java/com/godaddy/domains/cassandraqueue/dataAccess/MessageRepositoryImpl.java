@@ -46,6 +46,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                           .value(Tables.Message.MONOTON, message.getIndex().get())
                                           .value(Tables.Message.VERSION, 1)
                                           .value(Tables.Message.ACKED, false)
+                                          .value(Tables.Message.MESSAGE, message.getBlob())
                                           .value(Tables.Message.NEXT_VISIBLE_ON, now.plus(initialInvisibility).toDate())
                                           .value(Tables.Message.CREATED_DATE, now.toDate());
 
@@ -97,7 +98,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                           .value(Tables.Message.QUEUENAME, queueName.get())
                                           .value(Tables.Message.BUCKET_NUM, bucketPointer.get())
                                           .value(Tables.Message.MONOTON, -1)
-                                          .value(Tables.Message.CREATED_DATE, now.toDateTime());
+                                          .value(Tables.Message.CREATED_DATE, now.toDate());
 
         session.execute(statement);
     }
