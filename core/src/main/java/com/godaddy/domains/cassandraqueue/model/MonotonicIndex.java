@@ -1,5 +1,6 @@
 package com.godaddy.domains.cassandraqueue.model;
 
+import com.datastax.driver.core.Row;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -8,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.godaddy.domains.cassandraqueue.dataAccess.Tables;
 import com.godaddy.domains.common.valuetypes.LongValue;
 import com.godaddy.domains.common.valuetypes.adapters.xml.JaxbLongValueAdapter;
 import jdk.nashorn.internal.ir.annotations.Immutable;
@@ -31,6 +33,10 @@ public final class MonotonicIndex extends LongValue implements MessagePointer {
 
     public BucketPointer toBucketPointer(int bucketSize){
         return BucketPointer.valueOf(get() / bucketSize);
+    }
+
+    public static MonotonicIndex map(Row row) {
+        return MonotonicIndex.valueOf(row.getLong(Tables.Pointer.VALUE));
     }
 
     public static class XmlAdapter extends JaxbLongValueAdapter<MonotonicIndex> {
