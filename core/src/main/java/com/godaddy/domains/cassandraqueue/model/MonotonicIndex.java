@@ -36,7 +36,7 @@ public final class MonotonicIndex extends LongValue implements MessagePointer {
     }
 
     public static MonotonicIndex map(Row row) {
-        return MonotonicIndex.valueOf(row.getLong(Tables.Pointer.VALUE));
+        return MonotonicIndex.valueOf(row.getLong(Tables.Monoton.VALUE));
     }
 
     public static class XmlAdapter extends JaxbLongValueAdapter<MonotonicIndex> {

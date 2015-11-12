@@ -20,7 +20,7 @@ public class Message {
     private int version = 1;
 
     public boolean isVisible() {
-        return nextVisiblityAt.isAfterNow();
+        return nextVisiblityAt.isBeforeNow();
     }
 
     public boolean isNotAcked() {
@@ -29,6 +29,15 @@ public class Message {
 
     public boolean isNotVisible() {
         return !isVisible();
+    }
+
+    public Message withNewId(MonotonicIndex index){
+        return Message.builder()
+                      .blob(blob)
+                      .index(index)
+                      .version(1)
+                      .isAcked(false)
+                      .build();
     }
 
     public static Message fromRow(final Row row) {

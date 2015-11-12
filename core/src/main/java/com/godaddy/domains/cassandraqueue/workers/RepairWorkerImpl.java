@@ -1,9 +1,11 @@
 package com.godaddy.domains.cassandraqueue.workers;
 
+import com.godaddy.domains.cassandraqueue.dataAccess.exceptions.ExistingMonotonFoundException;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
+import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
 import com.google.inject.Inject;
@@ -134,9 +136,17 @@ public class RepairWorkerImpl implements RepairWorker {
     }
 
     private void republishMessage(Message message) {
-        dataContext.getMessageRepository().putMessage(message);
+        try {
+            final MonotonicIndex nextIndex = dataContext.getMonotonicRepository().nextMonotonic();
 
-        dataContext.getMessageRepository().ackMessage(message);
+            dataContext.getMessageRepository().putMessage(message.withNewId(nextIndex));
+
+
+            dataContext.getMessageRepository().ackMessage(message);
+        }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private RepairBucketPointer advance(final RepairBucketPointer currentBucket) {

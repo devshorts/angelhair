@@ -91,6 +91,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                           .and(set(Tables.Message.VERSION, message.getVersion() + 1))
                                           .where(eq(Tables.Message.QUEUENAME, queueName.get()))
                                           .and(eq(Tables.Message.BUCKET_NUM, bucketPointer))
+                                          .and(eq(Tables.Message.BUCKET_NUM, message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get()))
                                           .and(eq(Tables.Message.MONOTON, message.getIndex().get()))
                                           .onlyIf(eq(Tables.Message.VERSION, message.getVersion()));
 

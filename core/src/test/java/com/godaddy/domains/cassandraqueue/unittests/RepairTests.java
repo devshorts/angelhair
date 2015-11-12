@@ -1,5 +1,6 @@
 package com.godaddy.domains.cassandraqueue.unittests;
 
+import com.godaddy.domains.cassandraqueue.dataAccess.exceptions.ExistingMonotonFoundException;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.factories.RepairWorkerFactory;
@@ -16,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepairTests extends TestBase {
     @Test
-    public void test_repairs() throws InterruptedException {
+    public void test_repairs() throws InterruptedException, ExistingMonotonFoundException {
         final Injector defaultInjector = getDefaultInjector();
 
         final RepairWorkerFactory repairWorkerFactory = defaultInjector.getInstance(RepairWorkerFactory.class);

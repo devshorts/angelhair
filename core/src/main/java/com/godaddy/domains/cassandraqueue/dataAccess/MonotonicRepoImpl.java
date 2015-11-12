@@ -1,5 +1,6 @@
 package com.godaddy.domains.cassandraqueue.dataAccess;
 
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
@@ -38,7 +39,7 @@ public class MonotonicRepoImpl extends RepositoryBase implements MonotonicReposi
         Statement statement = QueryBuilder.select()
                                           .all()
                                           .from(Tables.Monoton.TABLE_NAME)
-                                          .where(eq(Tables.Monoton.QUEUENAME, queueName));
+                                          .where(eq(Tables.Monoton.QUEUENAME, queueName.get()));
 
         MonotonicIndex current = getOne(session.execute(statement), MonotonicIndex::map);
 
@@ -47,7 +48,7 @@ public class MonotonicRepoImpl extends RepositoryBase implements MonotonicReposi
 
     private void initializeMonotonicValue() {
         Statement statement = QueryBuilder.insertInto(Tables.Monoton.TABLE_NAME)
-                                          .value(Tables.Monoton.QUEUENAME, queueName)
+                                          .value(Tables.Monoton.QUEUENAME, queueName.get())
                                           .value(Tables.Monoton.VALUE, 1)
                                           .ifNotExists();
 
@@ -57,11 +58,17 @@ public class MonotonicRepoImpl extends RepositoryBase implements MonotonicReposi
     private MonotonicIndex incrementMonotonicValue() {
         Long current = getCurrent().get();
 
+        final long next = current + 1;
+
         Statement stat = QueryBuilder.update(Tables.Monoton.TABLE_NAME)
-                                     .with(set(Tables.Monoton.VALUE, current + 1))
-                                     .where(eq(Tables.Monoton.QUEUENAME, queueName))
+                                     .with(set(Tables.Monoton.VALUE, next))
+                                     .where(eq(Tables.Monoton.QUEUENAME, queueName.get()))
                                      .onlyIf(eq(Tables.Monoton.VALUE, current));
 
-        return getOne(session.execute(stat), MonotonicIndex::map);
+        if(session.execute(stat).wasApplied()) {
+            return MonotonicIndex.valueOf(next);
+        }
+
+        return null;
     }
 }
