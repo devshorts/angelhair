@@ -18,7 +18,6 @@ CREATE TABLE message (
   message text,
   version int,
   acked boolean,
-  polled boolean,
   next_visible_on timestamp,
   created_date timestamp,
 
