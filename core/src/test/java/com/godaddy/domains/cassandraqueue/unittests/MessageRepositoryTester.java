@@ -1,5 +1,6 @@
 package com.godaddy.domains.cassandraqueue.unittests;
 
+import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
@@ -33,3 +34,4 @@ public class MessageRepositoryTester extends TestBase {
 
     }
 }
+

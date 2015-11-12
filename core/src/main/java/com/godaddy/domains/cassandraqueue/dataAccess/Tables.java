@@ -14,6 +14,11 @@ public final class Tables {
         public static final String VALUE = "value";
     }
 
+    public static class Queue {
+        public static final String TABLE_NAME = "queue";
+        public static final String QUEUENAME = "queuename";
+    }
+
     public static class Message {
 
         public static final String TABLE_NAME = "message";
