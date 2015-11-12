@@ -11,7 +11,7 @@ import java.util.List;
 public interface MessageRepository {
     void putMessage(Message message, Duration initialInvisibility);
 
-    void markMessageInvisible(Message message, Duration duration);
+    boolean markMessageInvisible(Message message, Duration duration);
 
     void ackMessage(MonotonicIndex messageId);
 
@@ -20,4 +20,6 @@ public interface MessageRepository {
     void tombstone(BucketPointer bucketPointer);
 
     Message getMessageAt(MessagePointer pointer);
+
+    boolean tombstoneExists(BucketPointer bucketPointer);
 }
