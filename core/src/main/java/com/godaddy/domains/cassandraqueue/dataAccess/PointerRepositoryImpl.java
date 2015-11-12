@@ -18,6 +18,8 @@ import com.google.inject.assistedinject.Assisted;
 import java.util.function.Function;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.gt;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.lt;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
 
 public class PointerRepositoryImpl extends RepositoryBase implements PointerRepository {
@@ -34,13 +36,17 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
         return null;
     }
 
+    //if destination is less than current pointer value, move to destination.
+    //if original = current pointer move to destination.
     @Override public InvisibilityMessagePointer moveInvisiblityPointerTo(
             final InvisibilityMessagePointer original, final InvisibilityMessagePointer destination) {
         return null;
     }
 
     @Override public RepairBucketPointer advanceRepairBucketPointer(final RepairBucketPointer original, final RepairBucketPointer next) {
-        return null;
+        Clause clause = eq(Tables.Pointer.VALUE, original.get());
+
+        return movePointer(PointerType.REPAIR_BUCKET, original, clause) ? next : original;
     }
 
     @Override public InvisibilityMessagePointer getCurrentInvisPointer() {
@@ -74,13 +80,14 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
         return getOne(session.execute(query), mapper);
     }
 
-    private void movePointer(PointerType pointerType, Pointer pointer, Clause clause) {
+    private boolean movePointer(PointerType pointerType, Pointer pointer, Clause clause) {
         Statement statement = QueryBuilder.update(Tables.Pointer.TABLE_NAME)
                                           .with(set(Tables.Pointer.VALUE, pointer.get()))
                                           .where(eq(Tables.Pointer.QUEUENAME, queueName.get()))
                                           .and(eq(Tables.Pointer.POINTER_TYPE, pointerType.toString()))
                                           .onlyIf(clause);
 
-        session.execute(statement);
+        return session.execute(statement)
+                      .wasApplied();
     }
 }
