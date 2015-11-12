@@ -18,6 +18,7 @@ import com.google.inject.assistedinject.Assisted;
 import java.util.function.Function;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.gt;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
 
 public class PointerRepositoryImpl extends RepositoryBase implements PointerRepository {
@@ -34,12 +35,16 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
         return movePointer(PointerType.BUCKET_POINTER, original, next, pointerEqualsClause(original));
     }
 
-    //if destination is less than current pointer value, move to destination.
-    //if original = current pointer move to destination.
     @Override public InvisibilityMessagePointer moveInvisiblityPointerTo(
             final InvisibilityMessagePointer original, final InvisibilityMessagePointer destination) {
-        
-        return null;
+
+        //If the destination is less than the current pointer value, move the pointer.
+        InvisibilityMessagePointer pointer = movePointer(PointerType.INVISIBILITY_POINTER, original, destination, gt(Tables.Pointer.VALUE, destination));
+
+        //If the pointer was not moved, attempt to move the pointer to the destination if the original pointer value equals the current pointer value.
+        return pointer.get().equals(original.get()) ?
+               movePointer(PointerType.INVISIBILITY_POINTER, original, destination, pointerEqualsClause(original)) :
+               pointer;
     }
 
     @Override public RepairBucketPointer advanceRepairBucketPointer(final RepairBucketPointer original, final RepairBucketPointer next) {
