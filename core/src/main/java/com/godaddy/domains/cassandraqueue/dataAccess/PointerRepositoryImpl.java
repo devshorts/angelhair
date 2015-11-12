@@ -52,15 +52,33 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
     }
 
     @Override public InvisibilityMessagePointer getCurrentInvisPointer() {
-        return getPointer(PointerType.INVISIBILITY_POINTER, InvisibilityMessagePointer::map);
+        final InvisibilityMessagePointer pointer = getPointer(PointerType.INVISIBILITY_POINTER, InvisibilityMessagePointer::map);
+
+        if (pointer == null) {
+            return InvisibilityMessagePointer.valueOf(0);
+        }
+
+        return pointer;
     }
 
     @Override public ReaderBucketPointer getReaderCurrentBucket() {
-        return getPointer(PointerType.BUCKET_POINTER, ReaderBucketPointer::map);
+        final ReaderBucketPointer pointer = getPointer(PointerType.BUCKET_POINTER, ReaderBucketPointer::map);
+
+        if (pointer == null) {
+            return ReaderBucketPointer.valueOf(0);
+        }
+
+        return pointer;
     }
 
     @Override public RepairBucketPointer getRepairCurrentBucketPointer() {
-        return getPointer(PointerType.REPAIR_BUCKET, RepairBucketPointer::map);
+        final RepairBucketPointer pointer = getPointer(PointerType.REPAIR_BUCKET, RepairBucketPointer::map);
+
+        if (pointer == null) {
+            return RepairBucketPointer.valueOf(0);
+        }
+
+        return pointer;
     }
 
     private <T extends Pointer> T getPointer(PointerType pointerType, Function<Row, T> mapper) {

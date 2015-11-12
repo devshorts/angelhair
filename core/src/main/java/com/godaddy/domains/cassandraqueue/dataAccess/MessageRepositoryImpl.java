@@ -116,7 +116,12 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         // list all messages in bucket
         Statement query = getReadMessageQuery(bucketPointer);
 
-        return session.execute(query).all().stream().map(Message::fromRow).collect(toList());
+        return session.execute(query)
+                      .all()
+                      .stream()
+                      .map(Message::fromRow)
+                      .filter(m -> m.getIndex().get() >= 0)
+                      .collect(toList());
     }
 
     @Override

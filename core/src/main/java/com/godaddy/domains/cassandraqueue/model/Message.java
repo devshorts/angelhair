@@ -34,7 +34,7 @@ public class Message {
     public static Message fromRow(final Row row) {
         return Message.builder()
                       .blob(row.getString(Tables.Message.MESSAGE))
-                      .index(MonotonicIndex.valueOf(row.getInt(Tables.Message.MONOTON)))
+                      .index(MonotonicIndex.valueOf(row.getLong(Tables.Message.MONOTON)))
                       .isAcked(row.getBool(Tables.Message.ACKED))
                       .version(row.getInt(Tables.Message.VERSION))
                       .nextVisiblityAt(new DateTime(row.getDate(Tables.Message.NEXT_VISIBLE_ON)))
