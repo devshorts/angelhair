@@ -48,15 +48,15 @@ public class RepairWorkerImpl implements RepairWorker {
         schedule();
     }
 
-    private void schedule() {
-        scheduledExecutorService.schedule(this::process,
-                                          configuration.getRepairWorkerPollFrequency().getMillis(), TimeUnit.MILLISECONDS);
-    }
-
     @Override public void stop() {
         isStarted = false;
 
         scheduledExecutorService.shutdown();
+    }
+
+    private void schedule() {
+        scheduledExecutorService.schedule(this::process,
+                                          configuration.getRepairWorkerPollFrequency().getMillis(), TimeUnit.MILLISECONDS);
     }
 
     private void process() {
