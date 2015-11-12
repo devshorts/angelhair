@@ -40,8 +40,6 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
      * @param destination
      */
     @Override public void moveInvisiblityPointerTo(final MonotonicIndex destination) {
-        Clause clause =
-        movePointer(PointerType.INVISIBILITY_POINTER, destination)
     }
 
     @Override public InvisibilityMessagePointer getCurrentInvisPointer() {
