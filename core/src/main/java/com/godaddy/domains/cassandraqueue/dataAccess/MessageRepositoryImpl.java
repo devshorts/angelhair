@@ -26,14 +26,18 @@ public class MessageRepositoryImpl implements MessageRepository {
 
     @Override public void putMessage(final Message message, Duration initialInvisibility) {
         // store message
+        throw new NotImplementedException();
     }
 
-    @Override public void markMessageInvisible(final Message message, final Duration duration) {
+    @Override public boolean markMessageInvisible(final Message message, final Duration duration) {
         // update message invisiblity value to utc now + duration
+        // conditionally update index to use invisiblity if version the same
+        throw new NotImplementedException();
     }
 
     @Override public void ackMessage(final MonotonicIndex messageId) {
         // mark message as consumed
+        throw new NotImplementedException();
     }
 
     @Override public List<Message> getMessages(final BucketPointer bucketPointer) {
@@ -43,6 +47,7 @@ public class MessageRepositoryImpl implements MessageRepository {
 
     @Override public void tombstone(final BucketPointer bucketPointer) {
         // mark the bucket as tombstoned
+        throw new NotImplementedException();
     }
 
     @Override public Message getMessageAt(final MessagePointer pointer) {

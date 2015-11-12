@@ -20,7 +20,7 @@ import java.io.IOException;
 @XmlJavaTypeAdapter(value = BucketPointer.XmlAdapter.class)
 @JsonSerialize(using = BucketPointer.JsonSerializeAdapter.class)
 @JsonDeserialize(using = BucketPointer.JsonDeserializeAdapater.class)
-public final class BucketPointer extends LongValue {
+public final class BucketPointer extends LongValue implements Pointer {
     protected BucketPointer(final Long value) {
         super(value);
     }

@@ -89,9 +89,7 @@ public class ReaderImpl implements Reader {
     }
 
     private boolean updateInivisiblityTime(final Message message, final Duration invisiblity) {
-        // conditionally update index to use invisiblity if version the same
-
-        throw new NotImplementedException();
+        return dataContext.getMessageRepository().markMessageInvisible(message, invisiblity);
     }
 
     private Optional<Message> getAndMark(BucketPointer currentBucket, Duration invisiblity) {
