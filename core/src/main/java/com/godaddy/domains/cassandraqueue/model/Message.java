@@ -4,10 +4,7 @@ import com.datastax.driver.core.Row;
 import com.godaddy.domains.cassandraqueue.dataAccess.Tables;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NonNull;
 import org.joda.time.DateTime;
-
-import javax.validation.constraints.NotNull;
 
 @Data
 @Builder
@@ -21,6 +18,8 @@ public class Message {
     private boolean isAcked;
 
     private int version = 0;
+
+    private int deliveryCount = 0;
 
     public boolean isVisible() {
         return nextVisiblityAt == null || nextVisiblityAt.isBeforeNow();
@@ -50,6 +49,7 @@ public class Message {
                       .index(MonotonicIndex.valueOf(row.getLong(Tables.Message.MONOTON)))
                       .isAcked(row.getBool(Tables.Message.ACKED))
                       .version(row.getInt(Tables.Message.VERSION))
+                      .deliveryCount(row.getInt(Tables.Message.DELIVERY_COUNT))
                       .nextVisiblityAt(new DateTime(row.getDate(Tables.Message.NEXT_VISIBLE_ON)))
                       .build();
     }

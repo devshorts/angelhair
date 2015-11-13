@@ -70,7 +70,7 @@ public class ReaderImpl implements Reader {
                 return Optional.of(messageAt);
             }
         }
-        else if (messageAt.isNotAcked()) {
+        else if (messageAt.isAcked()) {
             return setNextInvisiblityPointer(pointer, invisiblity);
         }
 

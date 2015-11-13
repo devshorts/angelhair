@@ -24,6 +24,7 @@ CREATE TABLE message (
   acked boolean,
   next_visible_on timestamp,
   created_date timestamp,
+  delivery_count int,
 
   PRIMARY KEY ((queuename, bucket_num), monoton)
 );

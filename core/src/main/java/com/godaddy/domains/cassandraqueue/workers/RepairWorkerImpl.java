@@ -8,18 +8,16 @@ import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
+import com.godaddy.domains.cassandraqueue.modules.annotations.RepairPool;
 import com.godaddy.logging.Logger;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import lombok.Data;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Period;
 import org.joda.time.Seconds;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -33,6 +31,7 @@ import static com.godaddy.logging.LoggerFactory.getLogger;
 
 public class RepairWorkerImpl implements RepairWorker {
     private final BucketConfiguration configuration;
+    private final ScheduledExecutorService scheduledExecutorService;
 
     private Logger logger = getLogger(RepairWorkerImpl.class);
 
@@ -40,13 +39,13 @@ public class RepairWorkerImpl implements RepairWorker {
 
     private volatile boolean isStarted;
 
-    private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
-
     @Inject
     public RepairWorkerImpl(
             ServiceConfiguration configuration,
             DataContextFactory factory,
+            @RepairPool ScheduledExecutorService executorService,
             @Assisted QueueName queueName) {
+        scheduledExecutorService = executorService;
         this.configuration = configuration.getBucketConfiguration();
         dataContext = factory.forQueue(queueName);
 
@@ -101,7 +100,7 @@ public class RepairWorkerImpl implements RepairWorker {
 
         final List<Message> messages = dataContext.getMessageRepository().getMessages(pointer.getPointer());
 
-        messages.stream().filter(i -> !i.isAcked() && i.isVisible())
+        messages.stream().filter(i -> !i.isAcked() && i.isVisible() && i.getDeliveryCount() == 0)
                 .forEach(this::republishMessage);
 
         advance(pointer.getPointer());
