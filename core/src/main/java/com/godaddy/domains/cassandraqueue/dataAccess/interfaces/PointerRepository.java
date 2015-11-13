@@ -21,7 +21,7 @@ public interface PointerRepository {
      *
      * @param destination
      */
-    InvisibilityMessagePointer moveInvisiblityPointerTo(InvisibilityMessagePointer original, InvisibilityMessagePointer destination);
+    InvisibilityMessagePointer tryMoveInvisiblityPointerTo(InvisibilityMessagePointer original, InvisibilityMessagePointer destination);
 
     RepairBucketPointer advanceRepairBucketPointer(RepairBucketPointer original, RepairBucketPointer next);
 

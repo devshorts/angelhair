@@ -62,7 +62,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         }
     }
 
-    public boolean consumeNewlyVisibleMessage(final Message message, final Duration duration) {
+    public Optional<Message> consumeNewlyVisibleMessage(final Message message, final Duration duration) {
         final DateTime now = DateTime.now(DateTimeZone.UTC).plus(duration);
 
         final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
@@ -80,7 +80,11 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                                 .onlyIf(eq(Tables.Message.VERSION, message.getVersion()))
                                                 .and(eq(Tables.Message.ACKED, false));
 
-        return session.execute(statement).wasApplied();
+        if(session.execute(statement).wasApplied()){
+            return Optional.of(message.withNewVersion(newVersion));
+        }
+
+        return Optional.empty();
     }
 
     @Override
@@ -120,10 +124,6 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
 
         final ResultSet resultSet = session.execute(statement);
 
-        if(!resultSet.wasApplied()){
-            throw new RuntimeException();
-        }
-
         return resultSet.wasApplied();
     }
 
@@ -136,6 +136,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                           .ifNotExists()
                                           .value(Tables.Message.QUEUENAME, queueName.get())
                                           .value(Tables.Message.BUCKET_NUM, bucketPointer.get())
+                                          .value(Tables.Message.ACKED, true)
                                           .value(Tables.Message.MONOTON, Tombstone.index.get())
                                           .value(Tables.Message.CREATED_DATE, now.toDate());
 

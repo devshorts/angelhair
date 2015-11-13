@@ -39,6 +39,20 @@ public class Message {
                       .index(index)
                       .version(0)
                       .isAcked(false)
+                      .nextVisiblityAt(nextVisiblityAt)
+                      .deliveryCount(deliveryCount)
+                      .build();
+    }
+
+
+    public Message withNewVersion(int version) {
+        return Message.builder()
+                      .blob(blob)
+                      .index(index)
+                      .version(version)
+                      .isAcked(isAcked)
+                      .nextVisiblityAt(nextVisiblityAt)
+                      .deliveryCount(deliveryCount)
                       .build();
     }
 

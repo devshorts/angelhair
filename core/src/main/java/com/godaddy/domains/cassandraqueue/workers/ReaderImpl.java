@@ -1,10 +1,10 @@
 package com.godaddy.domains.cassandraqueue.workers;
 
-import com.godaddy.domains.cassandraqueue.dataAccess.Tombstone;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
+import com.godaddy.domains.cassandraqueue.model.MessagePointer;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
 import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
@@ -19,6 +19,71 @@ import java.util.Optional;
 
 import static com.godaddy.logging.LoggerFactory.getLogger;
 
+/**
+    Invis pointer algo:
+
+    if a message is available for consumption (never consumed)
+
+    Story time!
+
+    Imagine this scenario:
+
+    ~   = out for consumption
+    INV = message is invisible
+    *   = location of inivs pointer
+    T   = tombstoned
+    +   = at least once delivered
+    A   = acked
+    --  = bucket line
+
+    Message Id | Status
+
+    0 A *
+    1
+    2
+    --
+    3
+
+    Zero is acked. 1, 2 and 3. Two reads come in at the same time.  Both try and claim 1,
+    but only 1 of the consumers gets in, so the failed consumer (due to version changes)
+    retries and gets message 2.  Invis pointer is still on zero, since it can't move past
+    never delivered messages and is only moved on read begin.
+
+    0 A *
+    1 ~ INV - DEAD
+    2 ~ INV
+    --
+    3
+
+    Lets say now that message 2 is acked
+
+    0 A *
+    1 ~ INV - DEAD
+    2 A
+    --
+    3
+
+    Now two more reads come in and message 1 is ready for redelivery since its alive again
+
+    At this point, the invis pointer finds message 1 and sits on it. It gets returned as the message to consume
+    since its alive again, its visiblity gets updated to next, and the invis pointer parks.
+
+    0 A
+    1 + *
+    2 A
+    --
+    3
+
+    Now message 1 is acked, invis pointer stays put. The next read comes in, invis pointer moves to 3
+    and parks since its not allowed to advance past never delivered messages
+
+    0 A
+    1 A
+    2 A
+    --
+    3 *
+
+ */
 public class ReaderImpl implements Reader {
     private static final Logger logger = getLogger(ReaderImpl.class);
 
@@ -76,7 +141,7 @@ public class ReaderImpl implements Reader {
     private Optional<Message> tryGetNowVisibleMessage(InvisibilityMessagePointer pointer, Duration invisiblity) {
         final Message messageAt = dataContext.getMessageRepository().getMessage(pointer);
 
-        if(messageAt == null){
+        if (messageAt == null) {
             // invis pointer points to garbage, try and find something else
             return tryGetNextInvisMessage(pointer, invisiblity);
         }
@@ -88,11 +153,7 @@ public class ReaderImpl implements Reader {
 
         if (messageAt.isVisible() && messageAt.isNotAcked()) {
             // the message has come back alive
-            if (dataContext.getMessageRepository().consumeNewlyVisibleMessage(messageAt, invisiblity)) {
-
-                // give it back to the caller since its ready for processing
-                return Optional.of(messageAt);
-            }
+            return dataContext.getMessageRepository().consumeNewlyVisibleMessage(messageAt, invisiblity);
         }
         else if (messageAt.isAcked()) {
             // current message is acked that the invis pointer was pointing to
@@ -109,26 +170,21 @@ public class ReaderImpl implements Reader {
 
         final List<Message> messages = dataContext.getMessageRepository().getMessages(bucketPointer);
 
-        if(messages.isEmpty()){
+        if (messages.isEmpty()) {
             // no messages, can't move pointer since nothing to move to
             return Optional.empty();
         }
 
-        if(messages.stream().allMatch(m -> m.getIndex() == Tombstone.index)){
-            // somehow the bucket is basically empty and we need to skip it
-            final InvisibilityMessagePointer pointerForNextBucket = getPointerForNextBucket(pointer);
-
-            // retstart algo in next bucket
-            return tryGetNowVisibleMessage(pointerForNextBucket, invisiblity);
-        }
-
+        // in the active bucket, if there is a not acked, not visible, at least once delivered message
+        // then if its ID is LESS than the current active pointer, move the pointer to that
+        // otherwise pointer stays the same
         final Optional<Message> first = messages.stream()
                                                 .filter(m -> m.isNotAcked() &&
                                                              m.isNotVisible() &&
                                                              m.getDeliveryCount() > 0).findFirst();
 
         if (first.isPresent()) {
-            dataContext.getPointerRepository().moveInvisiblityPointerTo(pointer, InvisibilityMessagePointer.valueOf(first.get().getIndex()));
+            trySetNewInvisPointer(pointer, first.get().getIndex());
 
             logger.with(first.get()).info("Found invis message in current bucket");
 
@@ -142,10 +198,11 @@ public class ReaderImpl implements Reader {
 
     /**
      * Given the current pointer, returns a new pointer that jumps to the start of the next bucket
+     *
      * @param pointer
      * @return
      */
-    private InvisibilityMessagePointer getPointerForNextBucket(InvisibilityMessagePointer pointer){
+    private InvisibilityMessagePointer getPointerForNextBucket(InvisibilityMessagePointer pointer) {
         final ReaderBucketPointer bucketPointer = pointer.toBucketPointer(config.getBucketSize());
 
         final MonotonicIndex monotonicIndex = bucketPointer.next().startOf(config.getBucketSize());
@@ -179,6 +236,8 @@ public class ReaderImpl implements Reader {
 
         final Message message = foundMessage.get();
 
+        trySetNewInvisPointer(getCurrentInvisPointer(), message.getIndex());
+
         if (!dataContext.getMessageRepository().consumeMessage(message, invisiblity)) {
             // someone else did it, fuck it, try again for the next message
             logger.with(message).warn("Someone else consumed the message!");
@@ -208,5 +267,9 @@ public class ReaderImpl implements Reader {
 
     private MonotonicIndex getLatestMonotonic() {
         return dataContext.getMonotonicRepository().getCurrent();
+    }
+
+    private void trySetNewInvisPointer(final InvisibilityMessagePointer currentInvis, MessagePointer potentialNextInvisPointer) {
+        dataContext.getPointerRepository().tryMoveInvisiblityPointerTo(currentInvis, InvisibilityMessagePointer.valueOf(potentialNextInvisPointer.get()));
     }
 }

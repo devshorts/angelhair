@@ -36,7 +36,7 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
         return movePointer(PointerType.BUCKET_POINTER, original, next, pointerEqualsClause(original));
     }
 
-    @Override public InvisibilityMessagePointer moveInvisiblityPointerTo(
+    @Override public InvisibilityMessagePointer tryMoveInvisiblityPointerTo(
             final InvisibilityMessagePointer original, final InvisibilityMessagePointer destination) {
 
         //If the destination is less than the current pointer value, move the pointer.
