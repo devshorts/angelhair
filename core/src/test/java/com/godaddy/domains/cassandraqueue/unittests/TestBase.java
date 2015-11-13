@@ -90,4 +90,8 @@ public class TestBase {
     protected MonotonicIndex getTestMonoton() {
         return MonotonicIndex.valueOf(getNextIntForTesting());
     }
+
+    protected void resetMonotonCounter() {
+        counter = 0;
+    }
 }

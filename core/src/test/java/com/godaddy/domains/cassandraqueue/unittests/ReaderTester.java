@@ -7,9 +7,12 @@ import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
 import com.godaddy.domains.cassandraqueue.workers.Reader;
 import com.google.inject.Injector;
 import org.joda.time.Duration;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -18,17 +21,60 @@ import static junit.framework.TestCase.assertTrue;
 
 public class ReaderTester extends TestBase {
 
-    @Test
-    public void test_ack_next_message() throws Exception {
-        final Injector defaultInjector = getDefaultInjector();
+    private Injector defaultInjector;
+
+    private Reader reader;
+
+    private QueueName queueName;
+
+    private BucketConfiguration bucketConfiguration;
+
+    @Before
+    public void setup() {
+        defaultInjector = getDefaultInjector();
 
         final ReaderFactory readerFactory = defaultInjector.getInstance(ReaderFactory.class);
-        final QueueName queueName = QueueName.valueOf("test_ack_next_message");
+        queueName = QueueName.valueOf("test_ack_next_message");
 
         setupQueue(queueName);
 
-        final Reader reader = readerFactory.forQueue(queueName);
+        reader = readerFactory.forQueue(queueName);
 
+        bucketConfiguration = defaultInjector.getInstance(BucketConfiguration.class);
+    }
+
+    @Test
+    public void test_ack_next_message() throws Exception {
+        putMessage(0, "hi");
+
+        readAndAckMessage("hi", 100L);
+    }
+
+    //write test that invisible message comes back
+
+    @Test
+    public void test_monoton_skipped() throws Exception {
+        for(int i = 0; i < bucketConfiguration.getBucketSize() - 1; i++) {
+            putMessage(0, "foo");
+
+            readAndAckMessage("foo", 100L);
+        }
+
+        //last monoton of the bucket is grabbed and will be skipped over.
+        getTestMonoton();
+
+        //Put message in new bucket, verify that message can be read after monoton was skipped and new bucket contains message.
+        putMessage(0, "bar");
+
+        readAndAckMessage("bar", 100L);
+    }
+
+    @After
+    public void after() {
+        resetMonotonCounter();
+    }
+
+    private void putMessage(int seconds, String blob) throws Exception {
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
         final DataContext context = factory.forQueue(queueName);
 
@@ -36,16 +82,19 @@ public class ReaderTester extends TestBase {
 
         context.getMessageRepository().putMessage(
                 Message.builder()
-                       .blob("hi")
+                       .blob(blob)
                        .index(monoton)
-                       .build(), Duration.standardSeconds(0));
+                       .build(), Duration.standardSeconds(seconds));
+    }
 
-        Optional<Message> message = reader.nextMessage(Duration.standardSeconds(100L));
+    private void readAndAckMessage(String blob, Long invisDuration) {
+        Optional<Message> message = reader.nextMessage(Duration.standardSeconds(invisDuration));
 
-        assertTrue(message.get().getBlob().equals("hi"));
+        assertTrue(message.get().getBlob().equals(blob));
 
         boolean acked = reader.ackMessage(PopReceipt.from(message.get()));
 
         assertTrue(acked);
     }
+
 }
