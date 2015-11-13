@@ -8,17 +8,22 @@ import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
+import com.godaddy.logging.Logger;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import lombok.Data;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
+import org.joda.time.Seconds;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static com.godaddy.logging.LoggerFactory.getLogger;
 
 @Data class RepairContext {
     private final RepairBucketPointer pointer;
@@ -28,6 +33,8 @@ import java.util.concurrent.TimeUnit;
 
 public class RepairWorkerImpl implements RepairWorker {
     private final BucketConfiguration configuration;
+
+    private static final Logger logger = getLogger(RepairWorkerImpl.class);
 
     private final DataContext dataContext;
 
@@ -62,13 +69,19 @@ public class RepairWorkerImpl implements RepairWorker {
     }
 
     private void process() {
-        final Optional<RepairContext> firstBucketToMonitor = findFirstBucketToMonitor();
+        try {
+            final Optional<RepairContext> firstBucketToMonitor = findFirstBucketToMonitor();
 
-        if (firstBucketToMonitor.isPresent()) {
-            watchBucket(firstBucketToMonitor.get());
+            if (firstBucketToMonitor.isPresent()) {
+                watchBucket(firstBucketToMonitor.get());
+            }
         }
-
-        schedule();
+        catch (Throwable ex) {
+            logger.error(ex, "Error processing!");
+        }
+        finally {
+            schedule();
+        }
     }
 
     private RepairBucketPointer getCurrentBucket() {
@@ -86,15 +99,20 @@ public class RepairWorkerImpl implements RepairWorker {
 
         messages.stream().filter(i -> !i.isAcked() && i.isVisible())
                 .forEach(this::republishMessage);
+
+        advance(pointer.getPointer());
     }
 
     private void waitForTimeout(final DateTime tombstoneTime) {
-        final Period period = new Period(tombstoneTime.withDurationAdded(configuration.getRepairWorkerTimeout(), 1), DateTime.now());
 
-        if (period.getMillis() > 0) {
+        final DateTime plus = tombstoneTime.plus(configuration.getRepairWorkerTimeout());
+
+        final Seconds seconds = Seconds.secondsBetween(DateTime.now(), plus);
+
+        if (seconds.isGreaterThan(Seconds.ZERO)) {
             // wait for the repair worker timeout
             try {
-                Thread.sleep(period.getMillis());
+                Thread.sleep(seconds.getSeconds() * 1000);
             }
             catch (InterruptedException e) {
                 // ok
@@ -117,16 +135,22 @@ public class RepairWorkerImpl implements RepairWorker {
                 if (messages.size() == configuration.getBucketSize() && messages.stream().allMatch(Message::isAcked)) {
                     currentBucket = advance(currentBucket);
 
+                    logger.with(currentBucket).info("Found full bucket, advancing");
+
                     // look for next bucket
                     continue;
                 }
 
                 else {
+                    logger.with(currentBucket).info("Found tombstoned bucket, going to watch");
+
                     // found a bucket that is tombestoned, and need to now wait for the timeout
                     // before processing all messages and moving on
                     return Optional.of(new RepairContext(currentBucket, tombstoneTime.get()));
                 }
             }
+
+            logger.with(currentBucket).info("On active bucket not tombstoned");
 
             // on an active bucket that isn't tombstoned, just come back later and wait for tombstone
             return Optional.empty();
@@ -142,13 +166,24 @@ public class RepairWorkerImpl implements RepairWorker {
             dataContext.getMessageRepository().putMessage(message.withNewId(nextIndex));
 
             dataContext.getMessageRepository().ackMessage(message);
+
+            logger.with(message).with("next-index", nextIndex)
+                  .info("Message needs republishing, acking original and publishing new one");
         }
         catch (Exception e) {
+            logger.error(e, "Error publishing message");
+
             throw new RuntimeException(e);
         }
     }
 
     private RepairBucketPointer advance(final RepairBucketPointer currentBucket) {
-        return dataContext.getPointerRepository().advanceRepairBucketPointer(currentBucket, currentBucket.next());
+        logger.info("Advancing bucket");
+
+        final RepairBucketPointer repairBucketPointer = dataContext.getPointerRepository().advanceRepairBucketPointer(currentBucket, currentBucket.next());
+
+        logger.with(repairBucketPointer).info("New bucket");
+
+        return repairBucketPointer;
     }
 }

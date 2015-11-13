@@ -17,7 +17,7 @@ public class Message {
 
     private boolean isAcked;
 
-    private int version = 1;
+    private int version = 0;
 
     public boolean isVisible() {
         return nextVisiblityAt.isBeforeNow();
@@ -31,11 +31,11 @@ public class Message {
         return !isVisible();
     }
 
-    public Message withNewId(MonotonicIndex index){
+    public Message withNewId(MonotonicIndex index) {
         return Message.builder()
                       .blob(blob)
                       .index(index)
-                      .version(1)
+                      .version(0)
                       .isAcked(false)
                       .build();
     }

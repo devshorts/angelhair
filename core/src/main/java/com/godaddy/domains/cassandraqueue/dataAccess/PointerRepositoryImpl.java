@@ -4,6 +4,7 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.Clause;
+import com.datastax.driver.core.querybuilder.Insert;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.PointerRepository;
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
@@ -19,6 +20,7 @@ import java.util.function.Function;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.gt;
+import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
 
 public class PointerRepositoryImpl extends RepositoryBase implements PointerRepository {
@@ -79,15 +81,23 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
         return getOne(session.execute(query), mapper);
     }
 
-    private <T extends Pointer> T movePointer(PointerType pointerType, T pointer, T destination, Clause clause) {
+    private <T extends Pointer> T movePointer(PointerType pointerType, T original, T destination, Clause clause) {
+        final Statement insert = QueryBuilder.insertInto(Tables.Pointer.TABLE_NAME)
+                                         .ifNotExists()
+                                         .value(Tables.Pointer.VALUE, 0)
+                                         .value(Tables.Pointer.QUEUENAME, queueName.get())
+                                         .value(Tables.Pointer.POINTER_TYPE, pointerType.toString());
+
+        session.execute(insert);
+
         Statement statement = QueryBuilder.update(Tables.Pointer.TABLE_NAME)
-                                          .with(set(Tables.Pointer.VALUE, pointer.get()))
+                                          .with(set(Tables.Pointer.VALUE, destination.get()))
                                           .where(eq(Tables.Pointer.QUEUENAME, queueName.get()))
                                           .and(eq(Tables.Pointer.POINTER_TYPE, pointerType.toString()))
                                           .onlyIf(clause);
 
         return session.execute(statement)
-                      .wasApplied() ? destination : pointer;
+                      .wasApplied() ? destination : original;
     }
 
     private Clause pointerEqualsClause(Pointer pointer) {
