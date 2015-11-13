@@ -2,6 +2,7 @@ package com.godaddy.domains.cassandraqueue.api.v1;
 
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
 import com.godaddy.domains.cassandraqueue.factories.MessageRepoFactory;
+import com.godaddy.domains.cassandraqueue.factories.MonotonicRepoFactory;
 import com.godaddy.domains.cassandraqueue.factories.ReaderFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
@@ -35,12 +36,14 @@ public class QueueResource {
     private static final Logger logger = LoggerFactory.getLogger(QueueResource.class);
     private final ReaderFactory readerFactory;
     private final MessageRepoFactory messageRepoFactory;
+    private final MonotonicRepoFactory monotonicRepoFactory;
 
 
     @Inject
-    public QueueResource(ReaderFactory readerFactory, MessageRepoFactory messageRepoFactory) {
+    public QueueResource(ReaderFactory readerFactory, MessageRepoFactory messageRepoFactory, MonotonicRepoFactory monotonicRepoFactory) {
         this.readerFactory = readerFactory;
         this.messageRepoFactory = messageRepoFactory;
+        this.monotonicRepoFactory = monotonicRepoFactory;
     }
 
     @GET
@@ -87,6 +90,8 @@ public class QueueResource {
             messageRepoFactory.forQueue(queueName)
                               .putMessage(Message.builder()
                                                  .blob(message)
+                                                 .index(monotonicRepoFactory.forQueue(queueName)
+                                                                            .nextMonotonic())
                                                  .build(),
                                           Duration.millis(initialInvisibilityTime));
 
