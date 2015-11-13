@@ -43,7 +43,7 @@ public class ReaderImpl implements Reader {
     public boolean ackMessage(final PopReceipt popReceipt) {
         final Message messageAt = dataContext.getMessageRepository().getMessage(popReceipt.getMessageIndex());
 
-        if (messageAt.getVersion() != popReceipt.getMessageVersion() || messageAt.isVisible()) {
+        if(messageAt.getVersion() != popReceipt.getMessageVersion() || messageAt.isVisible()) {
             return false;
         }
 
@@ -61,11 +61,11 @@ public class ReaderImpl implements Reader {
     private Optional<Message> getNowVisibleMessage(InvisibilityMessagePointer pointer, Duration invisiblity) {
         final Message messageAt = dataContext.getMessageRepository().getMessage(pointer);
 
-        if (messageAt == null) {
+        if (messageAt == null || messageAt.getDeliveryCount() == 0) {
             return Optional.empty();
         }
 
-        if (messageAt.isVisible() && !messageAt.isNotAcked()) {
+        if (messageAt.isVisible() && messageAt.isNotAcked()) {
             if (dataContext.getMessageRepository().markMessageInvisible(messageAt, invisiblity, true)) {
                 return Optional.of(messageAt);
             }
