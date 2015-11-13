@@ -108,7 +108,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                           .ifNotExists()
                                           .value(Tables.Message.QUEUENAME, queueName.get())
                                           .value(Tables.Message.BUCKET_NUM, bucketPointer.get())
-                                          .value(Tables.Message.MONOTON, -1)
+                                          .value(Tables.Message.MONOTON, Tombstone.index.get())
                                           .value(Tables.Message.CREATED_DATE, now.toDate());
 
         session.execute(statement);
@@ -137,7 +137,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
 
     @Override
     public Optional<DateTime> tombstoneExists(final BucketPointer bucketPointer) {
-        Statement query = getReadMessageQuery(bucketPointer);
+        Statement query = getReadMessageQuery(bucketPointer).and(eq(Tables.Message.MONOTON, Tombstone.index.get()));
 
         return Optional.ofNullable(getOne(session.execute(query), row -> new DateTime(row.getDate(Tables.Message.CREATED_DATE))));
     }
@@ -145,7 +145,8 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
     @Override
     public Message getMessage(final MessagePointer pointer) {
         final BucketPointer bucketPointer = pointer.toBucketPointer(bucketConfiguration.getBucketSize());
-        Statement query = getReadMessageQuery(bucketPointer);
+
+        Statement query = getReadMessageQuery(bucketPointer).and(eq(Tables.Message.MONOTON, pointer.get()));
 
         return getOne(session.execute(query), Message::fromRow);
     }

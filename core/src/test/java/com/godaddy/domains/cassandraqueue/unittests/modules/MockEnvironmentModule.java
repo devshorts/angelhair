@@ -1,5 +1,7 @@
 package com.godaddy.domains.cassandraqueue.unittests.modules;
 
+import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
+import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
 import com.godaddy.domains.common.test.guice.OverridableModule;
 import com.google.inject.Module;
 import io.dropwizard.setup.Environment;
@@ -9,24 +11,15 @@ import org.mockito.Mockito;
 /**
  * Can be used to mock out dropwizard environment and auto mock the config class for a dropwizard service
  */
-public class MockEnvironmentModule<T> extends OverridableModule {
-    private final Class<T> configClass;
+public class MockEnvironmentModule extends OverridableModule {
 
     @Getter
-    private final T configInstance;
+    private final ServiceConfiguration configInstance;
 
     @Getter private Environment mockEnvironment = Mockito.mock(Environment.class);
 
 
-    public MockEnvironmentModule(Class<T> configClass) {
-        this.configClass = configClass;
-
-        configInstance = Mockito.mock(configClass);
-    }
-
-    public MockEnvironmentModule(T config) {
-        configClass = (Class<T>) config.getClass();
-
+    public MockEnvironmentModule(ServiceConfiguration config) {
         configInstance = config;
     }
 
@@ -37,6 +30,8 @@ public class MockEnvironmentModule<T> extends OverridableModule {
     @Override protected void configure() {
         bind(Environment.class).toInstance(mockEnvironment);
 
-        bind(configClass).toInstance(configInstance);
+        bind(ServiceConfiguration.class).toInstance(configInstance);
+
+        bind(BucketConfiguration.class).toInstance(configInstance.getBucketConfiguration());
     }
 }

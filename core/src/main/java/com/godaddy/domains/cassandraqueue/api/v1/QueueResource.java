@@ -94,7 +94,7 @@ public class QueueResource {
                                                  .index(monotonicRepoFactory.forQueue(queueName)
                                                                             .nextMonotonic())
                                                  .build(),
-                                          Duration.millis(initialInvisibilityTime));
+                                          Duration.standardSeconds(initialInvisibilityTime));
 
             return Response.noContent().build();
         }
