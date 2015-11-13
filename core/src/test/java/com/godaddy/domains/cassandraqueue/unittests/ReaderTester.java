@@ -134,6 +134,10 @@ public class ReaderTester extends TestBase {
 
         assertTrue(message.get().getBlob().equals(blob));
 
-        return reader.ackMessage(PopReceipt.from(message.get()));
+        final PopReceipt popReceipt = PopReceipt.from(message.get());
+
+        boolean acked = reader.ackMessage(popReceipt);
+
+        return acked;
     }
 }
