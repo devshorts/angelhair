@@ -1,4 +1,5 @@
 server:
+  name: localhost
   adminMinThreads: 1
   adminMaxThreads: 64
   rootPath: "/api/*"
@@ -90,4 +91,4 @@ logging:
       archivedFileCount: 6
 
 repair:
-  raftConfigPath: raft.xml
+  raftConfigPath: "docker/data/conf/raft.xml"

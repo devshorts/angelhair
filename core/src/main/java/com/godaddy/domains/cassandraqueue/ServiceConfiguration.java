@@ -3,6 +3,7 @@ package com.godaddy.domains.cassandraqueue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.godaddy.domains.cassandraqueue.configurations.CassandraConf;
 import com.godaddy.domains.cassandraqueue.configurations.JerseyConfiguration;
+import com.godaddy.domains.cassandraqueue.configurations.ServerConfig;
 import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
 import com.godaddy.domains.cassandraqueue.configurations.RepairConfig;
 import io.dropwizard.Configuration;
@@ -19,13 +20,6 @@ public class ServiceConfiguration extends Configuration {
     @Setter
     private JerseyConfiguration jerseyConfiguration = new JerseyConfiguration();
 
-    @Valid
-    @NotNull
-    @JsonProperty("cassandra")
-    @Getter
-    @Setter
-    private CassandraConf cassandraConf = new CassandraConf();
-
     @Getter
     @Setter
     @JsonProperty("bucket")
@@ -33,8 +27,23 @@ public class ServiceConfiguration extends Configuration {
 
     @Valid
     @NotNull
+    @JsonProperty("cassandra")
+    @Getter
+    @Setter
+    private CassandraConf cassandraConf = new CassandraConf();
+
+    @Valid
+    @NotNull
     @JsonProperty("repair")
     @Getter
     @Setter
     private RepairConfig repairConf = new RepairConfig();
+
+    @Valid
+    @NotNull
+    @JsonProperty("server")
+    @Getter
+    @Setter
+    private ServerConfig serverConf = new ServerConfig();
+
 }

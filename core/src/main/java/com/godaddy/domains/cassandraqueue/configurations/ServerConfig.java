@@ -4,11 +4,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.NotEmpty;
 
-public class RepairConfig {
+public class ServerConfig {
 
     @NotEmpty
     @Getter
     @Setter
-    private String raftConfigPath = "docker/data/conf/raft.xml";
+    private String name = "localhost";
 
 }

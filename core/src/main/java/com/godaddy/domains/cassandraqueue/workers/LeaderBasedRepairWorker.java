@@ -1,15 +1,22 @@
 package com.godaddy.domains.cassandraqueue.workers;
 
+import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
 import com.godaddy.domains.cassandraqueue.factories.RepairWorkerFactory;
 import com.goddady.cassandra.queue.api.client.QueueName;
+import com.godaddy.logging.Logger;
 import com.google.inject.Inject;
+
 import org.jgroups.JChannel;
 import org.jgroups.protocols.raft.RAFT;
 import org.jgroups.protocols.raft.Role;
 import org.jgroups.raft.RaftHandle;
 
+import static com.godaddy.logging.LoggerFactory.getLogger;
+
 public class LeaderBasedRepairWorker implements RAFT.RoleChange, RepairWorkerManager {
+
+    private static final Logger logger = getLogger(LeaderBasedRepairWorker.class);
 
     private static int MEMBER_ID_LAST = 0;
 
@@ -18,10 +25,10 @@ public class LeaderBasedRepairWorker implements RAFT.RoleChange, RepairWorkerMan
     private RaftHandle raftHandle;
 
     @Inject
-    public LeaderBasedRepairWorker(JChannel jChannel, QueueRepository queueRepo, RepairWorkerFactory repairWorkerFactory) throws Exception {
+    public LeaderBasedRepairWorker(ServiceConfiguration config, JChannel jChannel, QueueRepository queueRepo, RepairWorkerFactory repairWorkerFactory) throws Exception {
         raftHandle = new RaftHandle(jChannel, null);
         String raftId = String.valueOf(++MEMBER_ID_LAST);
-        raftHandle.raftId(raftId);
+        raftHandle.raftId(config.getServerConf().getName() + "_" + raftId);
         jChannel.connect("raft-cluster");
 
         this.queueRepo = queueRepo;
@@ -42,6 +49,8 @@ public class LeaderBasedRepairWorker implements RAFT.RoleChange, RepairWorkerMan
 
     @Override
     public void roleChanged(Role role) {
+        logger.info("ROLE_CHANGED: " + raftHandle.raftId() + " became " + role);
+
         if (role == Role.Leader) {
             startAll();
         } else {
