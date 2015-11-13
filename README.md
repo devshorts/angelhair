@@ -123,4 +123,4 @@ a leader for the repair worker. This prevents multiple repair workers re-publish
 
 ## Coverage report
 
-![Coverage report picture](img/coverage_report.PNG)
+![Coverage report picture](img/coverage_report.png)
