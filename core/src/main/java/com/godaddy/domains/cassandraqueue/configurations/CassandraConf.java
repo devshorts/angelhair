@@ -9,8 +9,10 @@ import com.godaddy.domains.cassandraqueue.configurations.config.Ssl;
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import com.google.common.base.Strings;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.stuartgunter.dropwizard.cassandra.CassandraFactory;
 import org.stuartgunter.dropwizard.cassandra.CassandraHealthCheck;
 import org.stuartgunter.dropwizard.cassandra.CassandraMetricSet;
@@ -20,7 +22,8 @@ import java.security.NoSuchAlgorithmException;
 
 import static com.codahale.metrics.MetricRegistry.name;
 
-@EqualsAndHashCode(callSuper = false) @Data
+@EqualsAndHashCode(callSuper = false)
+@Data
 public class CassandraConf extends CassandraFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(CassandraConf.class);
@@ -39,7 +42,7 @@ public class CassandraConf extends CassandraFactory {
      * The {@link com.codahale.metrics.MetricRegistry} will be used to register client metrics, and the {@link
      * com.codahale.metrics.health.HealthCheckRegistry} to register client health-checks.
      *
-     * @param metrics the registry to register client metrics.
+     * @param metrics      the registry to register client metrics.
      * @param healthChecks the registry to register client health-checks.
      * @return a fully configured {@link com.datastax.driver.core.Cluster}.
      */
@@ -86,16 +89,17 @@ public class CassandraConf extends CassandraFactory {
             builder.withClusterName(getClusterName());
         }
 
-        if(ssl != null) {
+        if (ssl != null) {
             try {
                 builder.withPort(ssl.getPort());
                 builder.withSSL(ssl.build());
-            } catch (NoSuchAlgorithmException e) {
+            }
+            catch (NoSuchAlgorithmException e) {
                 logger.with(ssl).error("Unable to set SSL");
             }
         }
 
-        if(loadBalancingPolicy != null) {
+        if (loadBalancingPolicy != null) {
             builder.withLoadBalancingPolicy(loadBalancingPolicy.build());
         }
 

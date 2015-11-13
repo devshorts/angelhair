@@ -13,7 +13,6 @@ public class SessionProviderModule extends AbstractModule {
     private LazyTwo<ServiceConfiguration, Environment, Session> lazy = new LazyTwo<>(this::createSession);
 
     @Override protected void configure() {
-
     }
 
     @Provides

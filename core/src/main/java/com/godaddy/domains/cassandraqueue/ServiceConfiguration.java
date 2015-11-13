@@ -6,6 +6,7 @@ import com.godaddy.domains.cassandraqueue.configurations.JerseyConfiguration;
 import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
 import com.godaddy.domains.cassandraqueue.configurations.RepairConfig;
 import io.dropwizard.Configuration;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
