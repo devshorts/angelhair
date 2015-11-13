@@ -33,6 +33,15 @@ public class ReaderTester extends TestBase {
     @Before
     public void setup() {
         defaultInjector = getDefaultInjector();
+
+        final ReaderFactory readerFactory = defaultInjector.getInstance(ReaderFactory.class);
+        queueName = QueueName.valueOf("test_ack_next_message");
+
+        setupQueue(queueName);
+
+        reader = readerFactory.forQueue(queueName);
+
+        bucketConfiguration = defaultInjector.getInstance(BucketConfiguration.class);
     }
 
     @Test
