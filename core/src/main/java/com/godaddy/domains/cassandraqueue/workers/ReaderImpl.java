@@ -61,7 +61,7 @@ public class ReaderImpl implements Reader {
     private Optional<Message> getNowVisibleMessage(InvisibilityMessagePointer pointer, Duration invisiblity) {
         final Message messageAt = dataContext.getMessageRepository().getMessage(pointer);
 
-        if (messageAt == null) {
+        if (messageAt == null || messageAt.getDeliveryCount() == 0) {
             return Optional.empty();
         }
 
