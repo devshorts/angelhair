@@ -73,7 +73,7 @@ public class ReaderTester extends TestBase {
 
         putMessage(0, "hi");
 
-        readAndAckMessage(reader, "hi", 1L);
+        assertThat(readAndAckMessage(reader, "hi", 1L)).isTrue();
 
         Thread.sleep(1000);
 

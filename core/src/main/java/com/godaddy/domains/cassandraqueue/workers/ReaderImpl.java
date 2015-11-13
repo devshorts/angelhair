@@ -129,7 +129,7 @@ public class ReaderImpl implements Reader {
 
         final List<Message> allMessages = dataContext.getMessageRepository().getMessages(currentBucket);
 
-        final boolean allComplete = allMessages.stream().allMatch(Message::isNotVisible);
+        final boolean allComplete = allMessages.stream().allMatch(Message::isAcked);
 
         if (allComplete) {
             if (allMessages.size() == config.getBucketSize() || monotonPastBucket(currentBucket)) {

@@ -136,6 +136,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                           .ifNotExists()
                                           .value(Tables.Message.QUEUENAME, queueName.get())
                                           .value(Tables.Message.BUCKET_NUM, bucketPointer.get())
+                                          .value(Tables.Message.ACKED, true)
                                           .value(Tables.Message.MONOTON, Tombstone.index.get())
                                           .value(Tables.Message.CREATED_DATE, now.toDate());
 
