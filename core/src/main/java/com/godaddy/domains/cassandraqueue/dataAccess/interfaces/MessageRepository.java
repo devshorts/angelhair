@@ -18,7 +18,7 @@ public interface MessageRepository {
         putMessage(message, Duration.ZERO);
     }
 
-    boolean updateMessageInvisibility(final Message message, final Duration duration);
+    boolean consumeMessage(final Message message, final Duration duration);
 
     boolean consumeNewlyVisibleMessage(final Message message, final Duration duration);
 
