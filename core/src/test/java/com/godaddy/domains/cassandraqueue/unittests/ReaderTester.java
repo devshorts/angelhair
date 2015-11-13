@@ -47,6 +47,5 @@ public class ReaderTester extends TestBase {
         boolean acked = reader.ackMessage(PopReceipt.from(message.get()));
 
         assertTrue(acked);
-
     }
 }

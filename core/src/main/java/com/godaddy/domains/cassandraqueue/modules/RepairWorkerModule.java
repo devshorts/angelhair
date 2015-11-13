@@ -6,7 +6,6 @@ import com.godaddy.domains.cassandraqueue.workers.RepairWorkerImpl;
 import com.godaddy.domains.cassandraqueue.workers.RepairWorkerManager;
 import com.godaddy.domains.cassandraqueue.workers.SimpleRepairWorkerManager;
 import com.google.inject.AbstractModule;
-import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 public class RepairWorkerModule extends AbstractModule {
@@ -16,6 +15,6 @@ public class RepairWorkerModule extends AbstractModule {
                         .implement(RepairWorker.class, RepairWorkerImpl.class)
                         .build(RepairWorkerFactory.class));
 
-        bind(RepairWorkerManager.class).to(SimpleRepairWorkerManager.class).in(Singleton.class);
+        bind(RepairWorkerManager.class).to(SimpleRepairWorkerManager.class);
     }
 }

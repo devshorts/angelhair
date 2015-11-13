@@ -34,7 +34,7 @@ import static com.godaddy.logging.LoggerFactory.getLogger;
 public class RepairWorkerImpl implements RepairWorker {
     private final BucketConfiguration configuration;
 
-    private static final Logger logger = getLogger(RepairWorkerImpl.class);
+    private Logger logger = getLogger(RepairWorkerImpl.class);
 
     private final DataContext dataContext;
 
@@ -49,10 +49,14 @@ public class RepairWorkerImpl implements RepairWorker {
             @Assisted QueueName queueName) {
         this.configuration = configuration.getBucketConfiguration();
         dataContext = factory.forQueue(queueName);
+
+        logger = logger.with(queueName);
     }
 
     @Override public void start() {
         isStarted = true;
+
+        logger.success("Starting repairer");
 
         schedule();
     }

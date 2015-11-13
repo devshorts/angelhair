@@ -9,7 +9,7 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
-public class SimpleRepairWorkerManager implements RepairWorkerManager{
+public class SimpleRepairWorkerManager implements RepairWorkerManager {
     private final QueueRepository queueRepo;
     private final RepairWorkerFactory repairWorkerFactory;
     private List<RepairWorker> activeRepairWorkers;
@@ -27,7 +27,7 @@ public class SimpleRepairWorkerManager implements RepairWorkerManager{
     }
 
     @Override public void stop() {
-        if(!CollectionUtils.isEmpty(activeRepairWorkers)){
+        if (!CollectionUtils.isEmpty(activeRepairWorkers)) {
             activeRepairWorkers.forEach(RepairWorker::stop);
         }
     }

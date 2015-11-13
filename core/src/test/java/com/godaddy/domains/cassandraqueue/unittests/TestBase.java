@@ -3,6 +3,7 @@ package com.godaddy.domains.cassandraqueue.unittests;
 import ch.qos.logback.classic.Level;
 import com.datastax.driver.core.Session;
 import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
+import com.godaddy.domains.cassandraqueue.configurations.LogMapping;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
@@ -39,6 +40,8 @@ public class TestBase {
     public TestBase() {
         LoggingFactory.bootstrap(Level.INFO);
 
+        LogMapping.register();
+
         String[] disableLogging = new String[]{ "uk.co.jemos.podam.api.PodamFactoryImpl",
                                                 "uk.co.jemos.podam.common.BeanValidationStrategy",
                                                 "org.apache.cassandra.service.CassandraDaemon",
@@ -65,7 +68,7 @@ public class TestBase {
                                          new MockEnvironmentModule(configuration)));
     }
 
-    protected Injector getDefaultInjector(){
+    protected Injector getDefaultInjector() {
         return getDefaultInjector(new ServiceConfiguration());
     }
 
@@ -79,11 +82,12 @@ public class TestBase {
     }
 
     private static int counter = 0;
+
     protected int getNextIntForTesting() {
         return counter++;
     }
 
-    protected MonotonicIndex getTestMonoton(){
+    protected MonotonicIndex getTestMonoton() {
         return MonotonicIndex.valueOf(getNextIntForTesting());
     }
 }

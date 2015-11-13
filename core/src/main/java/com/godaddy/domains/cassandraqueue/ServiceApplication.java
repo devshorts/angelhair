@@ -3,8 +3,8 @@ package com.godaddy.domains.cassandraqueue;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.godaddy.domains.cassandraqueue.configurations.LogMapping;
 import com.godaddy.domains.cassandraqueue.handlers.ParameterHandlerProvider;
-import com.godaddy.domains.cassandraqueue.modules.DataAccessModule;
 import com.godaddy.domains.cassandraqueue.modules.Modules;
 import com.google.inject.Module;
 import com.hubspot.dropwizard.guice.GuiceBundle;
@@ -85,7 +85,7 @@ public class ServiceApplication extends Application<ServiceConfiguration> {
 
         run.add(this::configureJson);
 
-        run.add(this::configureDataAccess);
+        run.add(this::configureLogging);
 
         run.add(this::configureDiscoverableApiHelp);
 
@@ -133,8 +133,8 @@ public class ServiceApplication extends Application<ServiceConfiguration> {
         swagConfig.setApiInfo(info);
     }
 
-    private void configureDataAccess(final ServiceConfiguration serviceConfiguration, final Environment environment) {
-
+    private void configureLogging(final ServiceConfiguration serviceConfiguration, final Environment environment) {
+        LogMapping.register();
     }
 
     private void configureJson(ServiceConfiguration config, final Environment environment) {
