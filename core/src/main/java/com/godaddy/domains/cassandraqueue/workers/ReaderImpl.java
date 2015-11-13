@@ -121,7 +121,7 @@ public class ReaderImpl implements Reader {
 
         final Message message = foundMessage.get();
 
-        if (!dataContext.getMessageRepository().updateMessageInvisibility(message, invisiblity)) {
+        if (!dataContext.getMessageRepository().consumeMessage(message, invisiblity)) {
             // someone else did it, fuck it, try again for the next message
             return getAndMark(currentBucket, invisiblity);
         }
