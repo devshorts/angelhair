@@ -12,7 +12,7 @@ server:
 cassandra:
   clusterName: rg-api-cluster
   keyspace: hackathon
-  contactPoints: ["10.22.10.39"]
+  contactPoints: ["192.168.99.100"]
   port: 9042
   socketOptions:
     keepAlive: true
@@ -25,10 +25,10 @@ cassandra:
     baseDelay: 1 second
     maxDelay: 30 seconds
   #SSL port will be used if SSL is defined.
-  ssl:
-    port: 9043
-  loadBalancingPolicy:
-    dataCenter: phx3_stg_spin
+  #ssl:
+  #  port: 9043
+  #loadBalancingPolicy:
+    #dataCenter: phx3_stg_spin
 
 metrics:
   reporters:

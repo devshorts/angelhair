@@ -38,7 +38,10 @@ public class QueueResource {
 
 
     @Inject
-    public QueueResource(ReaderFactory readerFactory, MessageRepoFactory messageRepoFactory, MonotonicRepoFactory monotonicRepoFactory) {
+    public QueueResource(
+            ReaderFactory readerFactory,
+            MessageRepoFactory messageRepoFactory,
+            MonotonicRepoFactory monotonicRepoFactory) {
         this.readerFactory = readerFactory;
         this.messageRepoFactory = messageRepoFactory;
         this.monotonicRepoFactory = monotonicRepoFactory;
@@ -81,7 +84,7 @@ public class QueueResource {
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK") })
     public Response putMessage(
             @PathParam("queueName") QueueName queueName,
-            @QueryParam("initialInvisibilityTime") long initialInvisibilityTime,
+            @QueryParam("initialInvisibilityTime") Long initialInvisibilityTime,
             String message) {
 
         try {
