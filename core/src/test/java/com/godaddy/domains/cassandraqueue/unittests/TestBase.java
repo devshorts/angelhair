@@ -28,10 +28,14 @@ public class TestBase {
         }
     }
 
-    protected Injector getDefaultInjector() {
+    protected Injector getDefaultInjector(ServiceConfiguration configuration) {
         return Guice.createInjector(
                 ModuleUtils.mergeModules(Modules.modules,
                                          new InMemorySessionProvider(session),
-                                         new MockEnvironmentModule<>(new ServiceConfiguration())));
+                                         new MockEnvironmentModule<>(configuration)));
+    }
+
+    protected Injector getDefaultInjector(){
+        return getDefaultInjector(new ServiceConfiguration());
     }
 }

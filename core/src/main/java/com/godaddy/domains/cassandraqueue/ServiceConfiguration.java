@@ -3,6 +3,7 @@ package com.godaddy.domains.cassandraqueue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.godaddy.domains.cassandraqueue.configurations.CassandraConf;
 import com.godaddy.domains.cassandraqueue.configurations.JerseyConfiguration;
+import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
 import io.dropwizard.Configuration;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,4 +30,8 @@ public class ServiceConfiguration extends Configuration {
     @Getter
     @Setter
     private CassandraConf cassandraConf;
+
+    @Getter
+    @Setter
+    private BucketConfiguration bucketConfiguration;
 }

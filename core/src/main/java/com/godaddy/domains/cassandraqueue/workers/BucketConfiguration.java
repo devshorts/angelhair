@@ -9,7 +9,7 @@ import org.joda.time.Duration;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BucketConfiguration {
-    private int bucketSize = 20;
+    private int bucketSize = 1;
 
     private Duration repairWorkerTimeout = Duration.standardSeconds(3);
 

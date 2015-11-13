@@ -145,7 +145,8 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
     @Override
     public Message getMessage(final MessagePointer pointer) {
         final BucketPointer bucketPointer = pointer.toBucketPointer(bucketConfiguration.getBucketSize());
-        Statement query = getReadMessageQuery(bucketPointer);
+
+        Statement query = getReadMessageQuery(bucketPointer).and(eq(Tables.Message.MONOTON, pointer.get()));
 
         return getOne(session.execute(query), Message::fromRow);
     }
