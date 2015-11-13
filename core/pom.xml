@@ -166,6 +166,12 @@
             <groupId>com.squareup.retrofit</groupId>
             <artifactId>converter-jackson</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.godaddy.domains</groupId>
+            <artifactId>cassandra-queue-api-client</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${project.artifactId}-${project.version}-r${buildNumber}</finalName>
