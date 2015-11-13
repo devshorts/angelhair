@@ -37,7 +37,7 @@ public class TestBase {
     }
 
     public TestBase() {
-        LoggingFactory.bootstrap(Level.INFO);
+        LoggingFactory.bootstrap(Level.ALL);
 
         LogMapping.register();
 

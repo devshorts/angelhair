@@ -51,7 +51,6 @@ public class ApiTester extends TestBase {
     }
 
     @Test
-    @Ignore
     public void demo_invis_client() throws Exception {
         @Cleanup("stop") LiveServer server = new LiveServer();
         server.getOverridableModules().add(new InMemorySessionProvider(session));
@@ -80,7 +79,9 @@ public class ApiTester extends TestBase {
 
             System.out.println(String.format("Message id: %s, Delivery count %s", body.getMessage(), body.getDeliveryCount()));
 
-            if (i % 5 == 0) {
+            if (i % 20 == 0) {
+                // message times out
+                Thread.sleep(5000);
             }
             else {
                 assertThat(popReceipt).isNotNull();

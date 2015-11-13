@@ -7,6 +7,7 @@ import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
+import com.godaddy.logging.Logger;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -15,7 +16,11 @@ import org.joda.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
+import static com.godaddy.logging.LoggerFactory.getLogger;
+
 public class ReaderImpl implements Reader {
+    private static final Logger logger = getLogger(ReaderImpl.class);
+
     private final DataContext dataContext;
     private final BucketConfiguration config;
 
@@ -33,10 +38,19 @@ public class ReaderImpl implements Reader {
         final Optional<Message> nowVisibleMessage = getNowVisibleMessage(getCurrentInvisPointer(), invisibility);
 
         if (nowVisibleMessage.isPresent()) {
+
+            logger.with(nowVisibleMessage.get()).debug("Got newly visible message");
+
             return nowVisibleMessage;
         }
 
-        return getAndMark(getReaderCurrentBucket(), invisibility);
+        final Optional<Message> nextMessage = getAndMark(getReaderCurrentBucket(), invisibility);
+
+        if(nextMessage.isPresent()){
+            logger.with(nextMessage.get()).debug("Got message");
+        }
+
+        return nextMessage;
     }
 
     @Override
@@ -87,8 +101,12 @@ public class ReaderImpl implements Reader {
         if (first.isPresent()) {
             dataContext.getPointerRepository().moveInvisiblityPointerTo(pointer, InvisibilityMessagePointer.valueOf(first.get().getIndex()));
 
+            logger.with(first.get()).debug("Found invis message in current bucket");
+
             return Optional.empty();
         }
+
+        logger.with(pointer).debug("Moving invis pointer to next bucket");
 
         final MonotonicIndex monotonicIndex = bucketPointer.next().startOf(config.getBucketSize());
 
@@ -123,6 +141,8 @@ public class ReaderImpl implements Reader {
 
         if (!dataContext.getMessageRepository().consumeMessage(message, invisiblity)) {
             // someone else did it, fuck it, try again for the next message
+            logger.with(message).warn("Someone else consumed the message!");
+
             return getAndMark(currentBucket, invisiblity);
         }
 
@@ -130,6 +150,7 @@ public class ReaderImpl implements Reader {
     }
 
     private void tombstone(final ReaderBucketPointer bucket) {
+        logger.with(bucket).debug("Tombstoning reader");
         dataContext.getMessageRepository().tombstone(bucket);
     }
 
@@ -140,6 +161,8 @@ public class ReaderImpl implements Reader {
     }
 
     private ReaderBucketPointer advanceBucket(ReaderBucketPointer currentBucket) {
+        logger.with(currentBucket).debug("Advancing reader bucket");
+
         return dataContext.getPointerRepository().advanceMessageBucketPointer(currentBucket, currentBucket.next());
     }
 
