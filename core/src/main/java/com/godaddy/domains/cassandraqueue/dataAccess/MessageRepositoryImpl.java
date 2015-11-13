@@ -5,6 +5,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
+import com.godaddy.domains.cassandraqueue.dataAccess.exceptions.ExistingMonotonFoundException;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
 import com.godaddy.domains.cassandraqueue.model.BucketPointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
@@ -38,7 +39,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
     }
 
     @Override
-    public void putMessage(final Message message, final Duration initialInvisibility) {
+    public void putMessage(final Message message, final Duration initialInvisibility) throws ExistingMonotonFoundException {
         final DateTime now = DateTime.now(DateTimeZone.UTC);
         final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
 
@@ -56,7 +57,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         final boolean wasInserted = session.execute(statement).wasApplied();
 
         if (!wasInserted) {
-            throw new RuntimeException("This should not have happend");
+            throw new ExistingMonotonFoundException(String.format("Tryed to insert a message with the monoton value of '%s' which already exists", message.getIndex()));
         }
     }
 

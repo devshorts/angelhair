@@ -82,13 +82,6 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
     }
 
     private <T extends Pointer> T movePointer(PointerType pointerType, T original, T destination, Clause clause) {
-        final Statement insert = QueryBuilder.insertInto(Tables.Pointer.TABLE_NAME)
-                                         .ifNotExists()
-                                         .value(Tables.Pointer.VALUE, 0)
-                                         .value(Tables.Pointer.QUEUENAME, queueName.get())
-                                         .value(Tables.Pointer.POINTER_TYPE, pointerType.toString());
-
-        session.execute(insert);
 
         Statement statement = QueryBuilder.update(Tables.Pointer.TABLE_NAME)
                                           .with(set(Tables.Pointer.VALUE, destination.get()))
@@ -99,6 +92,8 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
         return session.execute(statement)
                       .wasApplied() ? destination : original;
     }
+
+
 
     private Clause pointerEqualsClause(Pointer pointer) {
         return eq(Tables.Pointer.VALUE, pointer.get());

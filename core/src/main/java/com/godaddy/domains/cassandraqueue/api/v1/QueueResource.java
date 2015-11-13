@@ -1,5 +1,6 @@
 package com.godaddy.domains.cassandraqueue.api.v1;
 
+import com.godaddy.domains.cassandraqueue.dataAccess.exceptions.ExistingMonotonFoundException;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
 import com.godaddy.domains.cassandraqueue.factories.MessageRepoFactory;
 import com.godaddy.domains.cassandraqueue.factories.MonotonicRepoFactory;
@@ -27,7 +28,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 import java.util.Optional;
 
 @Path("/v1/queues")
@@ -40,7 +40,6 @@ public class QueueResource {
     private final MessageRepoFactory messageRepoFactory;
     private final MonotonicRepoFactory monotonicRepoFactory;
     private final QueueRepository queueRepository;
-
 
     @Inject
     public QueueResource(
@@ -60,7 +59,13 @@ public class QueueResource {
     @ApiResponses(value = { @ApiResponse(code = 201, message = "Created") })
     public Response createQueue(QueueName queueName) {
 
-        queueRepository.createQueue(queueName);
+        try {
+            queueRepository.createQueue(queueName);
+        }
+        catch (Exception e) {
+            logger.error(e, "Error");
+            return buildErrorResponse("CreateQueue", queueName, e);
+        }
 
         return Response.ok().status(Response.Status.CREATED).build();
     }
@@ -76,12 +81,20 @@ public class QueueResource {
             @PathParam("queueName") QueueName queueName,
             @QueryParam("invisibilityTime") @DefaultValue("30") Long invisibilityTime) {
 
-        if(!queueRepository.queueExists(queueName)){
-            return Response.status(Response.Status.NOT_FOUND).build();
+        if (ensureQueueCreated(queueName)) {
+            return buildQueueNotFoundResponse(queueName);
         }
 
-        final Optional<Message> nextMessage = readerFactory.forQueue(queueName)
-                                                           .nextMessage(Duration.standardSeconds(invisibilityTime));
+        final Optional<Message> nextMessage;
+
+        try {
+            nextMessage = readerFactory.forQueue(queueName)
+                                       .nextMessage(Duration.standardSeconds(invisibilityTime));
+        }
+        catch (Exception e) {
+            logger.error(e, "Error");
+            return buildErrorResponse("GetMessage", queueName, e);
+        }
 
         if (!nextMessage.isPresent()) {
             return Response.noContent().build();
@@ -103,34 +116,36 @@ public class QueueResource {
     @POST
     @Path("/{queueName}/messages")
     @ApiOperation(value = "Put Message")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK") })
+    @ApiResponses(value = { @ApiResponse(code = 201, message = "Message Added") })
     public Response putMessage(
             @PathParam("queueName") QueueName queueName,
             @QueryParam("initialInvisibilityTime") @DefaultValue("0") Long initialInvisibilityTime,
             String message) {
 
-        if(!queueRepository.queueExists(queueName)){
-            return Response.status(Response.Status.NOT_FOUND).build();
+        if (ensureQueueCreated(queueName)) {
+            return buildQueueNotFoundResponse(queueName);
         }
 
         try {
-            messageRepoFactory.forQueue(queueName)
-                              .putMessage(Message.builder()
-                                                 .blob(message)
-                                                 .index(monotonicRepoFactory.forQueue(queueName)
-                                                                            .nextMonotonic())
-                                                 .build(),
-                                          Duration.standardSeconds(initialInvisibilityTime));
+            final Message messageToInsert = Message.builder()
+                                                   .blob(message)
+                                                   .index(monotonicRepoFactory.forQueue(queueName)
+                                                                              .nextMonotonic())
+                                                   .build();
 
-            return Response.noContent().build();
+            final Duration initialInvisibility = Duration.standardSeconds(initialInvisibilityTime);
+
+            messageRepoFactory.forQueue(queueName)
+                              .putMessage(messageToInsert,
+                                          initialInvisibility);
         }
-        catch (Exception e) {
-            logger.error(e, "error putting message");
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new Object() {
-                @Getter
-                String message = e.getMessage();
-            }).build();
+        catch (ExistingMonotonFoundException e) {
+            logger.error(e, "Error");
+            return buildErrorResponse("PutMessage", queueName, e);
         }
+
+        return Response.status(Response.Status.CREATED).build();
+
     }
 
     @DELETE
@@ -141,17 +156,58 @@ public class QueueResource {
             @PathParam("queueName") QueueName queueName,
             @QueryParam("popReceipt") String popReceipt) {
 
-        if(!queueRepository.queueExists(queueName)){
-            return Response.status(Response.Status.NOT_FOUND).build();
+        if (ensureQueueCreated(queueName)) {
+            return buildQueueNotFoundResponse(queueName);
         }
 
-        boolean messageAcked = readerFactory.forQueue(queueName)
-                                            .ackMessage(PopReceipt.valueOf(popReceipt));
+        boolean messageAcked;
+
+        try {
+            messageAcked = readerFactory.forQueue(queueName)
+                                        .ackMessage(PopReceipt.valueOf(popReceipt));
+        }
+        catch (Exception e) {
+            logger.error(e, "Error");
+            return buildErrorResponse("AckMessage", queueName, e);
+        }
 
         if (messageAcked) {
             return Response.noContent().build();
         }
 
-        return Response.status(Response.Status.NOT_FOUND).build();
+        return Response.status(Response.Status.CONFLICT).entity("The message is already being processed").build();
+    }
+
+    private boolean ensureQueueCreated(final @PathParam("queueName") QueueName queueName) {
+        return !queueRepository.queueExists(queueName);
+    }
+
+    private Response buildQueueNotFoundResponse(final QueueName queue) {
+        return Response.status(Response.Status.NOT_FOUND).entity(new Object() {
+            @Getter
+            private final String result = "not-found";
+
+            @Getter
+            private final String queueName = queue.get();
+        }).build();
+    }
+
+    private Response buildErrorResponse(final String operation, final QueueName queue, final Exception e) {
+
+        final String errorMessage = e.getMessage();
+
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new Object() {
+            @Getter
+            private final String result = "error";
+
+            @Getter
+            private final String op = operation;
+
+            @Getter
+            private final QueueName queueName = queue;
+
+            @Getter
+            private final String message = errorMessage;
+        }).build();
     }
 }
