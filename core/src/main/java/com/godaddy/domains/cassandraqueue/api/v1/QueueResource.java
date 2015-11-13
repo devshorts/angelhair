@@ -166,7 +166,8 @@ public class QueueResource {
     @ApiOperation(value = "Ack Message")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
                             @ApiResponse(code = 409, message = "CONFLICT: PopReceipt is stale"),
-                            @ApiResponse(code = 404, message = "Queue doesn't exist") })
+                            @ApiResponse(code = 404, message = "Queue doesn't exist"),
+                            @ApiResponse(code = 500, message = "Server Error") })
     public Response ackMessage(
             @PathParam("queueName") QueueName queueName,
             @QueryParam("popReceipt") String popReceipt) {
