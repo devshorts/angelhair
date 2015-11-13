@@ -60,7 +60,8 @@ public class QueueResource {
     @POST
     @Path("/")
     @ApiOperation(value = "Create Queue")
-    @ApiResponses(value = { @ApiResponse(code = 201, message = "Created") })
+    @ApiResponses(value = { @ApiResponse(code = 201, message = "Created"),
+                            @ApiResponse(code = 500, message = "Server Error") })
     public Response createQueue(@Valid @NotNull QueueCreateOptions createOptions) {
         final QueueName queueName = createOptions.getQueueName();
 
@@ -80,7 +81,9 @@ public class QueueResource {
     @ApiOperation(value = "Get Message")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 204, message = "No message")
+            @ApiResponse(code = 204, message = "No message"),
+            @ApiResponse(code = 404, message = "Queue doesn't exist"),
+            @ApiResponse(code = 500, message = "Server Error")
     })
     public Response getMessage(
             @PathParam("queueName") QueueName queueName,
@@ -124,7 +127,9 @@ public class QueueResource {
     @POST
     @Path("/{queueName}/messages")
     @ApiOperation(value = "Put Message")
-    @ApiResponses(value = { @ApiResponse(code = 201, message = "Message Added") })
+    @ApiResponses(value = { @ApiResponse(code = 201, message = "Message Added"),
+                            @ApiResponse(code = 404, message = "Queue doesn't exist"),
+                            @ApiResponse(code = 500, message = "Server Error") })
     public Response putMessage(
             @PathParam("queueName") QueueName queueName,
             @QueryParam("initialInvisibilityTime") @DefaultValue("0") Long initialInvisibilityTime,
@@ -159,7 +164,9 @@ public class QueueResource {
     @DELETE
     @Path("/{queueName}/messages")
     @ApiOperation(value = "Ack Message")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK") })
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
+                            @ApiResponse(code = 409, message = "CONFLICT: PopReceipt is stale"),
+                            @ApiResponse(code = 404, message = "Queue doesn't exist") })
     public Response ackMessage(
             @PathParam("queueName") QueueName queueName,
             @QueryParam("popReceipt") String popReceipt) {
@@ -183,10 +190,10 @@ public class QueueResource {
             return Response.noContent().build();
         }
 
-        return Response.status(Response.Status.CONFLICT).entity("The message is already being processed").build();
+        return Response.status(Response.Status.CONFLICT).entity("The message is already being reprocessed").build();
     }
 
-    private boolean ensureQueueCreated(final @PathParam("queueName") QueueName queueName) {
+    private boolean ensureQueueCreated(final QueueName queueName) {
         return !queueRepository.queueExists(queueName);
     }
 
