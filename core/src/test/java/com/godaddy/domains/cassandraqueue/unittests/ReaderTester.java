@@ -35,7 +35,7 @@ public class ReaderTester extends TestBase {
         defaultInjector = getDefaultInjector();
 
         final ReaderFactory readerFactory = defaultInjector.getInstance(ReaderFactory.class);
-        queueName = QueueName.valueOf("test_ack_next_message");
+        queueName = QueueName.valueOf("queue");
 
         setupQueue(queueName);
 
