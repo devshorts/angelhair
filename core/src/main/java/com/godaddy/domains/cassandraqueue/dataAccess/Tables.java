@@ -27,6 +27,7 @@ public final class Tables {
         public static final String MONOTON = "monoton";
         public static final String MESSAGE = "message";
         public static final String VERSION = "version";
+        public static final String DELIVERY_COUNT = "delivery_count";
         public static final String ACKED = "acked";
         public static final String NEXT_VISIBLE_ON = "next_visible_on";
         public static final String CREATED_DATE = "created_date";

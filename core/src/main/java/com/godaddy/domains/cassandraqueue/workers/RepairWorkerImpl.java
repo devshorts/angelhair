@@ -101,7 +101,7 @@ public class RepairWorkerImpl implements RepairWorker {
 
         final List<Message> messages = dataContext.getMessageRepository().getMessages(pointer.getPointer());
 
-        messages.stream().filter(i -> !i.isAcked() && i.isVisible())
+        messages.stream().filter(i -> !i.isAcked() && i.isVisible() && i.getDeliveryCount() == 0)
                 .forEach(this::republishMessage);
 
         advance(pointer.getPointer());

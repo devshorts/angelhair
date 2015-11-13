@@ -2,7 +2,6 @@ package com.godaddy.domains.cassandraqueue.unittests;
 
 import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
 import com.godaddy.domains.cassandraqueue.dataAccess.exceptions.ExistingMonotonFoundException;
-import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.factories.RepairWorkerFactory;
@@ -70,6 +69,8 @@ public class RepairTests extends TestBase {
         final Message republish = dataContext.getMessageRepository().getMessage(MonotonicIndex.valueOf(1));
 
         assertThat(republish.getBlob()).isEqualTo(repairedMessage.getBlob());
+
+        repairWorker.stop();
     }
 
     @Test
@@ -137,5 +138,7 @@ public class RepairTests extends TestBase {
         repairCurrentBucketPointer = dataContext.getPointerRepository().getRepairCurrentBucketPointer();
 
         assertThat(repairCurrentBucketPointer.get()).isEqualTo(1);
+
+        repairWorker.stop();
     }
 }

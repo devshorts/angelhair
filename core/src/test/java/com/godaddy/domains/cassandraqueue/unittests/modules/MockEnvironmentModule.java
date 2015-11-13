@@ -1,7 +1,6 @@
 package com.godaddy.domains.cassandraqueue.unittests.modules;
 
 import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
-import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
 import com.godaddy.domains.common.test.guice.OverridableModule;
 import com.google.inject.Module;
 import io.dropwizard.setup.Environment;
