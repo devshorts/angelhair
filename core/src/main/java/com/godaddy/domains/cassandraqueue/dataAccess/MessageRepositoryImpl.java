@@ -67,11 +67,12 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
 
         final DateTime now = DateTime.now(DateTimeZone.UTC).plus(duration);
 
+        final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
         Statement statement = QueryBuilder.update(Tables.Message.TABLE_NAME)
                                           .with(set(Tables.Message.NEXT_VISIBLE_ON, now.toDate()))
                                           .and(set(Tables.Message.VERSION, message.getVersion() + 1))
                                           .where(eq(Tables.Message.QUEUENAME, queueName.get()))
-                                          .and(eq(Tables.Message.BUCKET_NUM, message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize())))
+                                          .and(eq(Tables.Message.BUCKET_NUM, bucketPointer))
                                           .and(eq(Tables.Message.MONOTON, message.getIndex().get()))
                                           .onlyIf(eq(Tables.Message.VERSION, message.getVersion()));
 

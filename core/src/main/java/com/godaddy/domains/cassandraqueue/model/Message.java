@@ -41,6 +41,7 @@ public class Message {
     }
 
     public static Message fromRow(final Row row) {
+
         return Message.builder()
                       .blob(row.getString(Tables.Message.MESSAGE))
                       .index(MonotonicIndex.valueOf(row.getLong(Tables.Message.MONOTON)))
