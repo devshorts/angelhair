@@ -70,7 +70,7 @@ public class TestBase {
     private static int counter = 0;
 
     protected int getNextIntForTesting() {
-        return ++counter;
+        return counter++;
     }
 
     protected MonotonicIndex getTestMonoton(){

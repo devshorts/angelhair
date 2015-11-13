@@ -14,28 +14,22 @@ import javax.validation.constraints.NotNull;
 
 public class ServiceConfiguration extends Configuration {
 
-    public JerseyConfiguration getJerseyConfiguration() {
-        if (jerseyConfiguration == null) {
-            return new JerseyConfiguration();
-        }
-
-        return jerseyConfiguration;
-    }
-
+    @Getter
+    @JsonProperty("jersey")
     @Setter
-    private JerseyConfiguration jerseyConfiguration;
+    private JerseyConfiguration jerseyConfiguration = new JerseyConfiguration();
 
     @Valid
     @NotNull
     @JsonProperty("cassandra")
     @Getter
     @Setter
-    private CassandraConf cassandraConf;
+    private CassandraConf cassandraConf = new CassandraConf();
 
     @Getter
     @Setter
     @JsonProperty("bucket")
-    private BucketConfiguration bucketConfiguration;
+    private BucketConfiguration bucketConfiguration = new BucketConfiguration();
 
     @Valid
     @NotNull
