@@ -77,7 +77,8 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                                 .where(eq(Tables.Message.QUEUENAME, queueName.get()))
                                                 .and(eq(Tables.Message.BUCKET_NUM, bucketPointer))
                                                 .and(eq(Tables.Message.MONOTON, message.getIndex().get()))
-                                                .onlyIf(eq(Tables.Message.VERSION, message.getVersion()));
+                                                .onlyIf(eq(Tables.Message.VERSION, message.getVersion()))
+                                                .and(eq(Tables.Message.ACKED, false));
 
         return session.execute(statement).wasApplied();
     }
@@ -118,6 +119,11 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                           .onlyIf(eq(Tables.Message.VERSION, message.getVersion()));
 
         final ResultSet resultSet = session.execute(statement);
+
+        if(!resultSet.wasApplied()){
+            throw new RuntimeException();
+        }
+
         return resultSet.wasApplied();
     }
 

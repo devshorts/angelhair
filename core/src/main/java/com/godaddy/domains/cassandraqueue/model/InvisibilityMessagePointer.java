@@ -35,7 +35,10 @@ public final class InvisibilityMessagePointer extends LongValue implements Messa
         return new InvisibilityMessagePointer(value.get());
     }
 
-    public ReaderBucketPointer toBucketPointer(int bucketSize){
+    public ReaderBucketPointer toBucketPointer(int bucketSize) {
+        if (get() <= 0) {
+            return ReaderBucketPointer.valueOf(0);
+        }
         return ReaderBucketPointer.valueOf(get() / bucketSize);
     }
 
@@ -45,21 +48,25 @@ public final class InvisibilityMessagePointer extends LongValue implements Messa
 
     public static class XmlAdapter extends JaxbLongValueAdapter<InvisibilityMessagePointer> {
 
-        @Nonnull @Override protected InvisibilityMessagePointer createNewInstance(final Long value) {
+        @Nonnull
+        @Override
+        protected InvisibilityMessagePointer createNewInstance(final Long value) {
             return InvisibilityMessagePointer.valueOf(value);
         }
     }
 
     public static class JsonDeserializeAdapater extends JsonDeserializer<InvisibilityMessagePointer> {
 
-        @Override public InvisibilityMessagePointer deserialize(final JsonParser jp, final DeserializationContext ctxt)
+        @Override
+        public InvisibilityMessagePointer deserialize(final JsonParser jp, final DeserializationContext ctxt)
                 throws IOException {
             return InvisibilityMessagePointer.valueOf(jp.getValueAsLong());
         }
     }
 
     public static class JsonSerializeAdapter extends JsonSerializer<InvisibilityMessagePointer> {
-        @SuppressWarnings("ConstantConditions") @Override
+        @SuppressWarnings("ConstantConditions")
+        @Override
         public void serialize(final InvisibilityMessagePointer value, final JsonGenerator jgen, final SerializerProvider provider)
                 throws IOException {
             jgen.writeNumber(value.get());

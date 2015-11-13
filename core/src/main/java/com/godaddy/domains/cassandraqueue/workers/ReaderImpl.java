@@ -1,5 +1,6 @@
 package com.godaddy.domains.cassandraqueue.workers;
 
+import com.godaddy.domains.cassandraqueue.dataAccess.Tombstone;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
@@ -75,7 +76,11 @@ public class ReaderImpl implements Reader {
     private Optional<Message> getNowVisibleMessage(InvisibilityMessagePointer pointer, Duration invisiblity) {
         final Message messageAt = dataContext.getMessageRepository().getMessage(pointer);
 
-        if (messageAt == null || messageAt.getDeliveryCount() == 0) {
+        if(messageAt == null){
+            return setNextInvisiblityPointer(pointer, invisiblity);
+        }
+
+        if (messageAt.getDeliveryCount() == 0) {
             return Optional.empty();
         }
 
@@ -95,6 +100,10 @@ public class ReaderImpl implements Reader {
         final ReaderBucketPointer bucketPointer = pointer.toBucketPointer(config.getBucketSize());
 
         final List<Message> messages = dataContext.getMessageRepository().getMessages(bucketPointer);
+
+        if(messages.isEmpty() || messages.stream().allMatch(m -> m.getIndex() == Tombstone.index)){
+            return Optional.empty();
+        }
 
         final Optional<Message> first = messages.stream()
                                                 .filter(m -> m.isNotAcked() &&

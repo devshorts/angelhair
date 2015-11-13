@@ -1,5 +1,7 @@
 package com.godaddy.domains.cassandraqueue.unittests;
 
+import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
+import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MonotonicRepository;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;

@@ -42,24 +42,25 @@ public class QueueRepositoryImpl extends RepositoryBase implements QueueReposito
     }
 
     private void initializePointers(final QueueName queueName) {
-        for (PointerType pointerType : PointerType.values()){
-            initializePointer(queueName, pointerType);
-        }
+
+        initializePointer(queueName, PointerType.BUCKET_POINTER, 0L);
+        initializePointer(queueName, PointerType.INVISIBILITY_POINTER, -1L);
+        initializePointer(queueName, PointerType.REPAIR_BUCKET, 0L);
     }
 
     private void initializeMonotonicValue(final QueueName queueName) {
         Statement statement = QueryBuilder.insertInto(Tables.Monoton.TABLE_NAME)
                                           .value(Tables.Monoton.QUEUENAME, queueName.get())
-                                          .value(Tables.Monoton.VALUE, 0)
+                                          .value(Tables.Monoton.VALUE, 0L)
                                           .ifNotExists();
 
         session.execute(statement);
     }
 
-    private void initializePointer(final QueueName queueName, final PointerType pointerType) {
+    private void initializePointer(final QueueName queueName, final PointerType pointerType, final Long value) {
         final Statement insert = QueryBuilder.insertInto(Tables.Pointer.TABLE_NAME)
                                              .ifNotExists()
-                                             .value(Tables.Pointer.VALUE, 0)
+                                             .value(Tables.Pointer.VALUE, value)
                                              .value(Tables.Pointer.QUEUENAME, queueName.get())
                                              .value(Tables.Pointer.POINTER_TYPE, pointerType.toString());
 
