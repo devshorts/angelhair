@@ -10,5 +10,6 @@ public class Modules {
             Arrays.asList(new DataAccessModule(),
                           new SessionProviderModule(),
                           new RepairWorkerModule(),
-                          new ReaderModule());
+                          new ReaderModule(),
+                          new LeadershipModule());
 }

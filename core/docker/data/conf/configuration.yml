@@ -88,3 +88,6 @@ logging:
       currentLogFilename: /data/logs/error.log
       archivedLogFilenamePattern: /data/logs/error-%d{yyyy-MM-dd-hh}.log.gz
       archivedFileCount: 6
+
+repair:
+  raftConfigPath: raft.xml
