@@ -123,4 +123,5 @@ a leader for the repair worker. This prevents multiple repair workers re-publish
 
 ## Coverage report
 
-![Coverage report picture](img/coverage_report.png)
+![App coverage report picture](img/coverage_report.png)
+![API client coverage report](img/api_coverage_report.png)
