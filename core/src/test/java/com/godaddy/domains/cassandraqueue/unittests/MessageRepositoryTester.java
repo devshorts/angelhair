@@ -4,7 +4,7 @@ import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
-import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Injector;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;

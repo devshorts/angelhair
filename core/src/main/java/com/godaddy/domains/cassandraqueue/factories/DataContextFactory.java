@@ -1,6 +1,6 @@
 package com.godaddy.domains.cassandraqueue.factories;
 
-import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.goddady.cassandra.queue.api.client.QueueName;
 
 public interface DataContextFactory {
     DataContext forQueue(QueueName queueName);

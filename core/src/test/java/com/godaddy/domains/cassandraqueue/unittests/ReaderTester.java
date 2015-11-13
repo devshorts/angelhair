@@ -1,18 +1,16 @@
 package com.godaddy.domains.cassandraqueue.unittests;
 
-import com.godaddy.domains.cassandraqueue.dataAccess.exceptions.ExistingMonotonFoundException;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.factories.ReaderFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
-import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
 import com.godaddy.domains.cassandraqueue.workers.Reader;
 import com.google.inject.Injector;
 import org.joda.time.Duration;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 

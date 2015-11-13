@@ -1,12 +1,11 @@
 package com.godaddy.domains.cassandraqueue.dataAccess;
 
-import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MonotonicRepository;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
-import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 

@@ -2,7 +2,7 @@ package com.godaddy.domains.cassandraqueue.unittests;
 
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
-import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import com.godaddy.domains.cassandraqueue.unittests.modules.InMemorySessionProvider;
 import com.godaddy.domains.cassandraqueue.unittests.server.LiveServer;
 import com.google.inject.Injector;

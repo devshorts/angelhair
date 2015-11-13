@@ -2,7 +2,7 @@ package com.godaddy.domains.cassandraqueue.workers;
 
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
 import com.godaddy.domains.cassandraqueue.factories.RepairWorkerFactory;
-import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Inject;
 import org.jgroups.JChannel;
 import org.jgroups.protocols.raft.RAFT;

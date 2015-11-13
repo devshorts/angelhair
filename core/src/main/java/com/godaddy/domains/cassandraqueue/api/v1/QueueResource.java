@@ -7,7 +7,8 @@ import com.godaddy.domains.cassandraqueue.factories.MonotonicRepoFactory;
 import com.godaddy.domains.cassandraqueue.factories.ReaderFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
-import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.goddady.cassandra.queue.api.client.QueueCreateOptions;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import com.google.inject.Inject;
@@ -18,6 +19,8 @@ import com.wordnik.swagger.annotations.ApiResponses;
 import lombok.Getter;
 import org.joda.time.Duration;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -57,7 +60,8 @@ public class QueueResource {
     @Path("/")
     @ApiOperation(value = "Create Queue")
     @ApiResponses(value = { @ApiResponse(code = 201, message = "Created") })
-    public Response createQueue(QueueName queueName) {
+    public Response createQueue(@Valid @NotNull QueueCreateOptions createOptions) {
+        final QueueName queueName = createOptions.getQueueName();
 
         try {
             queueRepository.createQueue(queueName);

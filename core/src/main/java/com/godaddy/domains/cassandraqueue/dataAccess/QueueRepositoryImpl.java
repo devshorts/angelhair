@@ -7,7 +7,7 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
 import com.godaddy.domains.cassandraqueue.model.PointerType;
-import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Inject;
 
 import java.util.List;
@@ -26,7 +26,6 @@ public class QueueRepositoryImpl extends RepositoryBase implements QueueReposito
 
     @Override
     public void createQueue(final QueueName queueName) {
-
         initializeMonotonicValue(queueName);
 
         initializePointers(queueName);

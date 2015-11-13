@@ -1,21 +1,16 @@
 package com.godaddy.domains.cassandraqueue.api.v1;
 
-import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.google.inject.Inject;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
 import com.wordnik.swagger.annotations.ApiResponses;
-import lombok.Getter;
 import org.glassfish.jersey.server.ManagedAsync;
 
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
@@ -25,7 +20,6 @@ import java.util.concurrent.ExecutionException;
 
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
-import org.joda.time.Duration;
 
 @Path("/v1/ping")
 @Api(value = "/v1/ping", description = "Ping api")

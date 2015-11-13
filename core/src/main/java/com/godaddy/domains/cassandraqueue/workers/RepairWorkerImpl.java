@@ -6,7 +6,7 @@ import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
-import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
 import com.godaddy.domains.cassandraqueue.modules.annotations.RepairPool;
 import com.godaddy.logging.Logger;

@@ -25,26 +25,26 @@ public interface CassandraQueueApi {
     }
 
     @POST("v1/queues")
-    Call<ResponseBody> createQueue(@Body String queueName);
+    Call<ResponseBody> createQueue(@Body QueueCreateOptions queueName);
 
     @GET("v1/queues/{queueName}/messages/next")
-    Call<MessageResponse> getMessage(@Path("queueName") String queueName);
+    Call<MessageResponse> getMessage(@Path("queueName") QueueName queueName);
 
     @GET("v1/queues/{queueName}/messages/next")
-    Call<MessageResponse> getMessage(@Path("queueName") String queueName, @Query("invisibilityTime") Long invisibilityTime);
+    Call<MessageResponse> getMessage(@Path("queueName") QueueName queueName, @Query("invisibilityTime") Long invisibilityTime);
 
     @POST("v1/queues/{queueName}/messages")
-    Call<ResponseBody> addMessage(@Path("queueName") String queueName, @Body String message);
+    Call<ResponseBody> addMessage(@Path("queueName") QueueName queueName, @Body String message);
 
     @POST("v1/queues/{queueName}/messages")
     Call<ResponseBody> addMessage(
-            @Path("queueName") String queueName,
+            @Path("queueName") QueueName queueName,
             @Body String message,
             @Query("initialInvisibilitySeconds") Long initialInvisibilitySeconds);
 
     @DELETE("v1/queues/{queueName}/messages")
     Call<ResponseBody> ackMessage(
-            @Path("queueName") String queueName,
+            @Path("queueName") QueueName queueName,
             @Query("popReceipt") String popReceipt);
 
 

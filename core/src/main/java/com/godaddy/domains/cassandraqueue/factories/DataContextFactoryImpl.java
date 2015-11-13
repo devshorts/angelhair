@@ -1,7 +1,7 @@
 package com.godaddy.domains.cassandraqueue.factories;
 
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
-import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 

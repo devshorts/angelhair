@@ -107,7 +107,6 @@ We have bundled a java client to talk to a simple rest api. The api supports
 Getting a message gives you a pop reciept that encodes the message index AND its version. This means that you can prevent multiple ackers of a message
 and do conditional atomic actions based on that message version.
 
-
 ## Leadership election for repair worker
 
 A feature in progress (though not currently complete) is to use the RAFT consensus protocol (comparable to PAXOS) to elect
@@ -123,5 +122,8 @@ a leader for the repair worker. This prevents multiple repair workers re-publish
 
 ## Coverage report
 
+App coverage
 ![App coverage report picture](img/coverage_report.png)
+
+Api client coverage
 ![API client coverage report](img/api_coverage_report.png)

@@ -5,6 +5,8 @@ import com.godaddy.domains.cassandraqueue.unittests.server.LiveServer;
 import com.godaddy.logging.Logger;
 import com.goddady.cassandra.queue.api.client.CassandraQueueApi;
 import com.goddady.cassandra.queue.api.client.MessageResponse;
+import com.goddady.cassandra.queue.api.client.QueueCreateOptions;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import com.squareup.okhttp.ResponseBody;
 import lombok.Cleanup;
 import org.junit.Test;
@@ -26,11 +28,13 @@ public class ApiTester extends TestBase {
 
         final CassandraQueueApi client = CassandraQueueApi.createClient(server.getBaseUri().toString());
 
-        client.createQueue("test").execute();
+        final QueueName queueName = QueueName.valueOf("test");
 
-        client.addMessage("test", "hi").execute();
+        client.createQueue(new QueueCreateOptions(queueName)).execute();
 
-        final Response<MessageResponse> message = client.getMessage("test").execute();
+        client.addMessage(queueName, "hi").execute();
+
+        final Response<MessageResponse> message = client.getMessage(queueName).execute();
 
         final MessageResponse body = message.body();
 
@@ -40,8 +44,8 @@ public class ApiTester extends TestBase {
 
         assertThat(popReceipt).isNotNull();
 
-        final Response<ResponseBody> ackResponse = client.ackMessage("test", popReceipt).execute();
-        assertThat(ackResponse.isSuccess()).isTrue();
+        final Response<ResponseBody> ackResponse = client.ackMessage(queueName, popReceipt).execute();
 
+        assertThat(ackResponse.isSuccess()).isTrue();
     }
 }

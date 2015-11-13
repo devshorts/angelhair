@@ -1,4 +1,4 @@
-package com.godaddy.domains.cassandraqueue.model;
+package com.goddady.cassandra.queue.api.client;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;

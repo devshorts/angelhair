@@ -1,6 +1,6 @@
 package com.godaddy.domains.cassandraqueue.dataAccess.interfaces;
 
-import com.godaddy.domains.cassandraqueue.model.QueueName;
+import com.goddady.cassandra.queue.api.client.QueueName;
 
 import java.util.List;
 
