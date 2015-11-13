@@ -34,37 +34,14 @@ public class ReaderTester extends TestBase {
     public void setup() {
         defaultInjector = getDefaultInjector();
 
-        final ReaderFactory readerFactory = defaultInjector.getInstance(ReaderFactory.class);
-        queueName = QueueName.valueOf("queue");
-
-        setupQueue(queueName);
-
-        reader = readerFactory.forQueue(queueName);
-
         bucketConfiguration = defaultInjector.getInstance(BucketConfiguration.class);
     }
 
     @Test
-    public void delivery_count_increases_after_message_expires_and_is_redelivered() throws ExistingMonotonFoundException, InterruptedException {
-        final Injector defaultInjector = getDefaultInjector();
+    public void delivery_count_increases_after_message_expires_and_is_redelivered() throws Exception {
+        setupReaderAndQueue(QueueName.valueOf("delivery_count_increases_after_message_expires_and_is_redelivered"));
 
-        final ReaderFactory readerFactory = defaultInjector.getInstance(ReaderFactory.class);
-        final QueueName queueName = QueueName.valueOf("test_ack_next_message");
-
-        setupQueue(queueName);
-
-        final Reader reader = readerFactory.forQueue(queueName);
-
-        final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
-        final DataContext context = factory.forQueue(queueName);
-
-        final MonotonicIndex monoton = getTestMonoton();
-
-        context.getMessageRepository().putMessage(
-                Message.builder()
-                       .blob("hi")
-                       .index(monoton)
-                       .build(), Duration.standardSeconds(0));
+        putMessage(0, "hi");
 
         Optional<Message> message = reader.nextMessage(Duration.standardSeconds(4));
 
@@ -83,6 +60,8 @@ public class ReaderTester extends TestBase {
 
     @Test
     public void test_ack_next_message() throws Exception {
+        setupReaderAndQueue(QueueName.valueOf("test_ack_next_message"));
+
         putMessage(0, "hi");
 
         readAndAckMessage("hi", 100L);
@@ -92,6 +71,8 @@ public class ReaderTester extends TestBase {
 
     @Test
     public void test_monoton_skipped() throws Exception {
+        setupReaderAndQueue(QueueName.valueOf("test_monoton_skipped"));
+
         for(int i = 0; i < bucketConfiguration.getBucketSize() - 1; i++) {
             putMessage(0, "foo");
 
@@ -110,6 +91,15 @@ public class ReaderTester extends TestBase {
     @After
     public void after() {
         resetMonotonCounter();
+    }
+
+    private void setupReaderAndQueue(QueueName queueName) {
+        final ReaderFactory readerFactory = defaultInjector.getInstance(ReaderFactory.class);
+        this.queueName = queueName;
+
+        setupQueue(queueName);
+
+        reader = readerFactory.forQueue(queueName);
     }
 
     private void putMessage(int seconds, String blob) throws Exception {
