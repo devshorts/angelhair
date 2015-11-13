@@ -80,18 +80,4 @@ public class TestBase {
     protected void setupQueue(QueueName queueName) {
         setupQueue(queueName, getDefaultInjector());
     }
-
-    private static int counter = 0;
-
-    protected int getNextIntForTesting() {
-        return counter++;
-    }
-
-    protected MonotonicIndex getTestMonoton() {
-        return MonotonicIndex.valueOf(getNextIntForTesting());
-    }
-
-    protected void resetMonotonCounter() {
-        counter = 0;
-    }
 }

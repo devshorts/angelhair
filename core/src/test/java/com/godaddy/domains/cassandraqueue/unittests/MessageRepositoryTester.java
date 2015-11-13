@@ -27,7 +27,7 @@ public class MessageRepositoryTester extends TestBase {
 
         final DataContext context = factory.forQueue(queueName);
 
-        final MonotonicIndex monoton = getTestMonoton();
+        final MonotonicIndex monoton = context.getMonotonicRepository().nextMonotonic();
 
         context.getMessageRepository().putMessage(
                 Message.builder()
@@ -51,7 +51,7 @@ public class MessageRepositoryTester extends TestBase {
 
         final DataContext context = factory.forQueue(queueName);
 
-        final MonotonicIndex monoton = getTestMonoton();
+        final MonotonicIndex monoton = context.getMonotonicRepository().nextMonotonic();
 
         context.getMessageRepository().putMessage(
                 Message.builder()
@@ -84,7 +84,7 @@ public class MessageRepositoryTester extends TestBase {
 
         final DataContext context = factory.forQueue(queueName);
 
-        final MonotonicIndex monoton = getTestMonoton();
+        final MonotonicIndex monoton = context.getMonotonicRepository().nextMonotonic();
 
         context.getMessageRepository().putMessage(
                 Message.builder()
@@ -117,7 +117,7 @@ public class MessageRepositoryTester extends TestBase {
 
         final DataContext context = factory.forQueue(queueName);
 
-        final MonotonicIndex monoton = getTestMonoton();
+        final MonotonicIndex monoton = context.getMonotonicRepository().nextMonotonic();
 
         context.getMessageRepository().tombstone(monoton.toBucketPointer(1));
 

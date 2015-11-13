@@ -71,7 +71,9 @@ public class ReaderTester extends TestBase {
 
     @Test
     public void test_monoton_skipped() throws Exception {
-        setupReaderAndQueue(QueueName.valueOf("test_monoton_skipped"));
+        final QueueName test_monoton_skipped = QueueName.valueOf("test_monoton_skipped");
+
+        setupReaderAndQueue(test_monoton_skipped);
 
         for(int i = 0; i < bucketConfiguration.getBucketSize() - 1; i++) {
             putMessage(0, "foo");
@@ -80,17 +82,12 @@ public class ReaderTester extends TestBase {
         }
 
         //last monoton of the bucket is grabbed and will be skipped over.
-        getTestMonoton();
+        defaultInjector.getInstance(DataContextFactory.class).forQueue(queueName).getMonotonicRepository().nextMonotonic();
 
         //Put message in new bucket, verify that message can be read after monoton was skipped and new bucket contains message.
         putMessage(0, "bar");
 
         readAndAckMessage("bar", 100L);
-    }
-
-    @After
-    public void after() {
-        resetMonotonCounter();
     }
 
     private void setupReaderAndQueue(QueueName queueName) {
@@ -106,7 +103,7 @@ public class ReaderTester extends TestBase {
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
         final DataContext context = factory.forQueue(queueName);
 
-        final MonotonicIndex monoton = getTestMonoton();
+        final MonotonicIndex monoton = context.getMonotonicRepository().nextMonotonic();
 
         context.getMessageRepository().putMessage(
                 Message.builder()
