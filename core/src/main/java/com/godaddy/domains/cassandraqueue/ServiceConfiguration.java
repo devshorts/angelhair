@@ -33,5 +33,6 @@ public class ServiceConfiguration extends Configuration {
 
     @Getter
     @Setter
+    @JsonProperty("bucket")
     private BucketConfiguration bucketConfiguration;
 }

@@ -1,5 +1,6 @@
 package com.godaddy.domains.cassandraqueue.workers;
 
+import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
@@ -36,10 +37,10 @@ public class RepairWorkerImpl implements RepairWorker {
 
     @Inject
     public RepairWorkerImpl(
-            BucketConfiguration configuration,
+            ServiceConfiguration configuration,
             DataContextFactory factory,
             @Assisted QueueName queueName) {
-        this.configuration = configuration;
+        this.configuration = configuration.getBucketConfiguration();
         dataContext = factory.forQueue(queueName);
     }
 
