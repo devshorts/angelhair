@@ -9,5 +9,6 @@ public class Modules {
     public static final List<Module> modules =
             Arrays.asList(new DataAccessModule(),
                           new SessionProviderModule(),
-                          new RepairWorkerModule());
+                          new RepairWorkerModule(),
+                          new ReaderModule());
 }
