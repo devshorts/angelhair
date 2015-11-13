@@ -1,16 +1,17 @@
 package com.godaddy.domains.cassandraqueue.unittests;
 
-import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.google.inject.Injector;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,10 +23,12 @@ public class MessageRepositoryTester extends TestBase {
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
         final DataContext context = factory.forQueue(QueueName.valueOf("jakes"));
 
+        final MonotonicIndex monoton = getTestMonoton();
+
         context.getMessageRepository().putMessage(
                 Message.builder()
                        .blob("hi")
-                       .index(MonotonicIndex.valueOf(3))
+                       .index(monoton)
                        .build(), Duration.standardSeconds(30));
 
         final List<Message> messages = context.getMessageRepository().getMessages(() -> 0L);
@@ -41,31 +44,26 @@ public class MessageRepositoryTester extends TestBase {
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
         final DataContext context = factory.forQueue(QueueName.valueOf("jakes"));
 
+        final MonotonicIndex monoton = getTestMonoton();
+
         context.getMessageRepository().putMessage(
                 Message.builder()
                        .blob("hi")
-                       .index(MonotonicIndex.valueOf(3))
+                       .index(monoton)
                        .build(), Duration.standardSeconds(30));
 
-        final List<Message> messages = context.getMessageRepository().getMessages(() -> 0L);
 
-        assertThat(messages.size()).isEqualTo(1);
+        final Message message = context.getMessageRepository().getMessage(monoton);
 
-        final Message message = messages.get(0);
-
-        assertThat(message.isAcked()).isEqualTo(false);
+        assertThat(message.isAcked()).isFalse();
 
         final boolean ackSucceeded = context.getMessageRepository().ackMessage(message);
+        assertThat(ackSucceeded).isTrue();
 
-        assertThat(ackSucceeded).isEqualTo(true);
+        final Message ackedMessage = context.getMessageRepository()
+                                            .getMessage(message.getIndex());
 
-        final List<Message> ackedMessages = context.getMessageRepository().getMessages(() -> 0L);
-
-        assertThat(ackedMessages.size()).isEqualTo(1);
-
-        final Message ackedMessage = ackedMessages.get(0);
-
-        assertThat(ackedMessage.isAcked()).isEqualTo(true);
+        assertThat(ackedMessage.isAcked()).isTrue();
     }
 
     @Test
@@ -75,33 +73,42 @@ public class MessageRepositoryTester extends TestBase {
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
         final DataContext context = factory.forQueue(QueueName.valueOf("jakes"));
 
+        final MonotonicIndex monoton = getTestMonoton();
+
         context.getMessageRepository().putMessage(
                 Message.builder()
                        .blob("hi")
-                       .index(MonotonicIndex.valueOf(3))
+                       .index(monoton)
                        .build(), Duration.millis(30));
 
-        final List<Message> messages = context.getMessageRepository().getMessages(() -> 0L);
+        final Message message = context.getMessageRepository().getMessage(monoton);
 
-        assertThat(messages.size()).isEqualTo(1);
-
-        final Message message = messages.get(0);
-
-        assertThat(message.isAcked()).isEqualTo(false);
+        assertThat(message.isAcked()).isFalse();
 
         context.getMessageRepository().markMessageInvisible(message, Duration.standardDays(30));
 
         final boolean ackSucceeded = context.getMessageRepository().ackMessage(message);
+        assertThat(ackSucceeded).isFalse();
 
-        assertThat(ackSucceeded).isEqualTo(false);
+        final Message ackedMessage = context.getMessageRepository()
+                                            .getMessage(message.getIndex());
+        assertThat(ackedMessage.isAcked()).isFalse();
+    }
 
-        final List<Message> ackedMessages = context.getMessageRepository().getMessages(() -> 0L);
+    @Test
+    public void an_added_tombstone_should_exist() throws Exception {
+        final Injector defaultInjector = getDefaultInjector();
 
-        assertThat(ackedMessages.size()).isEqualTo(1);
+        final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
+        final DataContext context = factory.forQueue(QueueName.valueOf("jakes"));
 
-        final Message ackedMessage = ackedMessages.get(0);
+        final MonotonicIndex monoton = getTestMonoton();
 
-        assertThat(ackedMessage.isAcked()).isEqualTo(false);
+        context.getMessageRepository().tombstone(monoton.toBucketPointer(1));
+
+        final Optional<DateTime> tombstoneExists = context.getMessageRepository().tombstoneExists(monoton.toBucketPointer(1));
+
+        assertThat(tombstoneExists.isPresent()).isTrue();
     }
 }
 
