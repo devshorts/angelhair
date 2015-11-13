@@ -92,7 +92,6 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
         final Statement statement = QueryBuilder.update(Tables.Message.TABLE_NAME)
                                                 .with(set(Tables.Message.NEXT_VISIBLE_ON, now.toDate()))
-                                                .and(set(Tables.Message.DELIVERY_COUNT, message.getDeliveryCount() + 1))
                                                 .where(eq(Tables.Message.QUEUENAME, queueName.get()))
                                                 .and(eq(Tables.Message.BUCKET_NUM, bucketPointer))
                                                 .and(eq(Tables.Message.MONOTON, message.getIndex().get()))
