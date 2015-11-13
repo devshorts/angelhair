@@ -4,7 +4,10 @@ import com.datastax.driver.core.Row;
 import com.godaddy.domains.cassandraqueue.dataAccess.Tables;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NonNull;
 import org.joda.time.DateTime;
+
+import javax.validation.constraints.NotNull;
 
 @Data
 @Builder
@@ -20,7 +23,7 @@ public class Message {
     private int version = 0;
 
     public boolean isVisible() {
-        return nextVisiblityAt.isBeforeNow();
+        return nextVisiblityAt == null || nextVisiblityAt.isBeforeNow();
     }
 
     public boolean isNotAcked() {

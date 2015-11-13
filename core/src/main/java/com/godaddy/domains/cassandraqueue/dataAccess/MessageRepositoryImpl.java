@@ -61,16 +61,17 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
     }
 
     @Override
-    public boolean markMessageInvisible(final Message message, final Duration duration) {
+    public boolean markMessageInvisible(final Message message, final Duration duration, final boolean updateVersion) {
         // update message invisiblity value to utc now + duration
         // conditionally update index to use invisiblity if version the same
 
         final DateTime now = DateTime.now(DateTimeZone.UTC).plus(duration);
 
         final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
+        final int newVersion = message.getVersion() + (updateVersion ? 1 : 0);
         Statement statement = QueryBuilder.update(Tables.Message.TABLE_NAME)
                                           .with(set(Tables.Message.NEXT_VISIBLE_ON, now.toDate()))
-                                          .and(set(Tables.Message.VERSION, message.getVersion() + 1))
+                                          .and(set(Tables.Message.VERSION, newVersion))
                                           .where(eq(Tables.Message.QUEUENAME, queueName.get()))
                                           .and(eq(Tables.Message.BUCKET_NUM, bucketPointer))
                                           .and(eq(Tables.Message.MONOTON, message.getIndex().get()))

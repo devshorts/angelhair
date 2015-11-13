@@ -17,22 +17,19 @@ import java.util.Optional;
 
 public class ReaderImpl implements Reader {
     private final DataContext dataContext;
-    private final DataContextFactory dataContextFactory;
     private final BucketConfiguration config;
-    private final QueueName queueName;
 
     @Inject
     public ReaderImpl(
             DataContextFactory dataContextFactory,
             BucketConfiguration config,
             @Assisted QueueName queueName) {
-        this.dataContextFactory = dataContextFactory;
         this.config = config;
-        this.queueName = queueName;
         dataContext = dataContextFactory.forQueue(queueName);
     }
 
-    @Override public Optional<Message> nextMessage(Duration invisibility) {
+    @Override
+    public Optional<Message> nextMessage(Duration invisibility) {
         final Optional<Message> nowVisibleMessage = getNowVisibleMessage(getCurrentInvisPointer(), invisibility);
 
         if (nowVisibleMessage.isPresent()) {
@@ -42,7 +39,8 @@ public class ReaderImpl implements Reader {
         return getAndMark(getReaderCurrentBucket(), invisibility);
     }
 
-    @Override public boolean ackMessage(final PopReceipt popReceipt) {
+    @Override
+    public boolean ackMessage(final PopReceipt popReceipt) {
         final Message messageAt = dataContext.getMessageRepository().getMessage(popReceipt.getMessageIndex());
 
         if (messageAt.getVersion() != popReceipt.getMessageVersion() || messageAt.isVisible()) {
@@ -63,8 +61,12 @@ public class ReaderImpl implements Reader {
     private Optional<Message> getNowVisibleMessage(InvisibilityMessagePointer pointer, Duration invisiblity) {
         final Message messageAt = dataContext.getMessageRepository().getMessage(pointer);
 
-        if (messageAt.isVisible() && messageAt.isNotAcked()) {
-            if (updateInivisiblityTime(messageAt, invisiblity)) {
+        if (messageAt == null) {
+            return Optional.empty();
+        }
+
+        if (messageAt.isVisible() && !messageAt.isNotAcked()) {
+            if (dataContext.getMessageRepository().markMessageInvisible(messageAt, invisiblity, true)) {
                 return Optional.of(messageAt);
             }
         }
@@ -93,10 +95,6 @@ public class ReaderImpl implements Reader {
         return getNowVisibleMessage(InvisibilityMessagePointer.valueOf(monotonicIndex), invisiblity);
     }
 
-    private boolean updateInivisiblityTime(final Message message, final Duration invisiblity) {
-        return dataContext.getMessageRepository().markMessageInvisible(message, invisiblity);
-    }
-
     private Optional<Message> getAndMark(ReaderBucketPointer currentBucket, Duration invisiblity) {
 
         final List<Message> allMessages = dataContext.getMessageRepository().getMessages(currentBucket);
@@ -123,7 +121,7 @@ public class ReaderImpl implements Reader {
 
         final Message message = foundMessage.get();
 
-        if (!updateInivisiblityTime(message, invisiblity)) {
+        if (!dataContext.getMessageRepository().markMessageInvisible(message, invisiblity)) {
             // someone else did it, fuck it, try again for the next message
             return getAndMark(currentBucket, invisiblity);
         }

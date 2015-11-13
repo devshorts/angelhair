@@ -18,7 +18,11 @@ public interface MessageRepository {
         putMessage(message, Duration.ZERO);
     }
 
-    boolean markMessageInvisible(Message message, Duration duration);
+    default boolean markMessageInvisible(Message message, Duration duration) {
+        return markMessageInvisible(message, duration, false);
+    }
+
+    boolean markMessageInvisible(Message message, Duration duration, boolean updateVersion);
 
     boolean ackMessage(Message message);
 
