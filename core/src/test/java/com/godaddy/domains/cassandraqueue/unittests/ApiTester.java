@@ -9,7 +9,6 @@ import com.goddady.cassandra.queue.api.client.QueueCreateOptions;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import com.squareup.okhttp.ResponseBody;
 import lombok.Cleanup;
-import org.junit.Ignore;
 import org.junit.Test;
 import retrofit.Response;
 
@@ -62,16 +61,23 @@ public class ApiTester extends TestBase {
 
         client.createQueue(new QueueCreateOptions(queueName)).execute();
 
-        int count = 100;
+        int count = 21;
 
         for (int i = 0; i < count; i++) {
             client.addMessage(queueName, Integer.valueOf(i).toString()).execute();
         }
 
-        for (int i = 0; i < 100; i++) {
-            final Response<GetMessageResponse> message = client.getMessage(queueName, 3L).execute();
+        int c = -1;
+
+        while(true){
+            c++;
+            final Response<GetMessageResponse> message = client.getMessage(queueName, 1L).execute();
 
             final GetMessageResponse body = message.body();
+
+            if(body == null){
+                break;
+            }
 
             assertThat(body).isNotNull();
 
@@ -79,14 +85,18 @@ public class ApiTester extends TestBase {
 
             System.out.println(String.format("Message id: %s, Delivery count %s", body.getMessage(), body.getDeliveryCount()));
 
-            if (i % 20 == 0) {
+            if (c == 0 ) {
                 // message times out
-                Thread.sleep(5000);
+                System.out.println("WAIT");
+                Thread.sleep(2000);
+                continue;
             }
             else {
                 assertThat(popReceipt).isNotNull();
 
                 final Response<ResponseBody> ackResponse = client.ackMessage(queueName, popReceipt).execute();
+
+                System.out.println("ACK");
 
                 assertThat(ackResponse.isSuccess()).isTrue();
             }

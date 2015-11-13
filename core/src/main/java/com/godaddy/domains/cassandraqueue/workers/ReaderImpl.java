@@ -2,11 +2,11 @@ package com.godaddy.domains.cassandraqueue.workers;
 
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
-import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
+import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.logging.Logger;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Inject;
@@ -39,15 +39,15 @@ public class ReaderImpl implements Reader {
 
         if (nowVisibleMessage.isPresent()) {
 
-            logger.with(nowVisibleMessage.get()).debug("Got newly visible message");
+            logger.with(nowVisibleMessage.get()).info("Got newly visible message");
 
             return nowVisibleMessage;
         }
 
         final Optional<Message> nextMessage = getAndMark(getReaderCurrentBucket(), invisibility);
 
-        if(nextMessage.isPresent()){
-            logger.with(nextMessage.get()).debug("Got message");
+        if (nextMessage.isPresent()) {
+            logger.with(nextMessage.get()).info("Got message");
         }
 
         return nextMessage;
@@ -57,7 +57,7 @@ public class ReaderImpl implements Reader {
     public boolean ackMessage(final PopReceipt popReceipt) {
         final Message messageAt = dataContext.getMessageRepository().getMessage(popReceipt.getMessageIndex());
 
-        if(messageAt.getVersion() != popReceipt.getMessageVersion() || messageAt.isVisible()) {
+        if (messageAt.getVersion() != popReceipt.getMessageVersion() || messageAt.isVisible()) {
             return false;
         }
 
@@ -96,17 +96,20 @@ public class ReaderImpl implements Reader {
 
         final List<Message> messages = dataContext.getMessageRepository().getMessages(bucketPointer);
 
-        final Optional<Message> first = messages.stream().filter(m -> m.isNotAcked() && m.isNotVisible()).findFirst();
+        final Optional<Message> first = messages.stream()
+                                                .filter(m -> m.isNotAcked() &&
+                                                             m.isNotVisible() &&
+                                                             m.getDeliveryCount() > 0).findFirst();
 
         if (first.isPresent()) {
             dataContext.getPointerRepository().moveInvisiblityPointerTo(pointer, InvisibilityMessagePointer.valueOf(first.get().getIndex()));
 
-            logger.with(first.get()).debug("Found invis message in current bucket");
+            logger.with(first.get()).info("Found invis message in current bucket");
 
             return Optional.empty();
         }
 
-        logger.with(pointer).debug("Moving invis pointer to next bucket");
+        logger.with(pointer).info("Moving invis pointer to next bucket");
 
         final MonotonicIndex monotonicIndex = bucketPointer.next().startOf(config.getBucketSize());
 
@@ -150,7 +153,7 @@ public class ReaderImpl implements Reader {
     }
 
     private void tombstone(final ReaderBucketPointer bucket) {
-        logger.with(bucket).debug("Tombstoning reader");
+        logger.with(bucket).info("Tombstoning reader");
         dataContext.getMessageRepository().tombstone(bucket);
     }
 
@@ -161,7 +164,7 @@ public class ReaderImpl implements Reader {
     }
 
     private ReaderBucketPointer advanceBucket(ReaderBucketPointer currentBucket) {
-        logger.with(currentBucket).debug("Advancing reader bucket");
+        logger.with(currentBucket).info("Advancing reader bucket");
 
         return dataContext.getPointerRepository().advanceMessageBucketPointer(currentBucket, currentBucket.next());
     }
