@@ -31,7 +31,5 @@ public class MockEnvironmentModule extends OverridableModule {
         bind(Environment.class).toInstance(mockEnvironment);
 
         bind(ServiceConfiguration.class).toInstance(configInstance);
-
-        bind(BucketConfiguration.class).toInstance(configInstance.getBucketConfiguration());
     }
 }
