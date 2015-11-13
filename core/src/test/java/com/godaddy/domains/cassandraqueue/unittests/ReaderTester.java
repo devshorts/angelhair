@@ -67,8 +67,6 @@ public class ReaderTester extends TestBase {
         readAndAckMessage("hi", 100L);
     }
 
-    //write test that invisible message comes back
-
     @Test
     public void test_monoton_skipped() throws Exception {
         final QueueName test_monoton_skipped = QueueName.valueOf("test_monoton_skipped");
