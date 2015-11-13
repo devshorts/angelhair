@@ -66,6 +66,25 @@ public class ReaderTester extends TestBase {
     }
 
     @Test
+    public void test_ack_next_message_should_never_be_visible() throws Exception {
+        setupReaderAndQueue(QueueName.valueOf("test_ack_next_message"));
+
+        putMessage(0, "hi");
+
+        readAndAckMessage("hi", 1L);
+
+        Thread.sleep(1000);
+
+        for (int i = 0; i < 10; i++){
+            final Optional<Message> message = reader.nextMessage(Duration.millis(300));
+
+            assertThat(message.isPresent()).isFalse();
+
+            Thread.sleep(1000);
+        }
+    }
+
+    @Test
     public void test_monoton_skipped() throws Exception {
         final QueueName test_monoton_skipped = QueueName.valueOf("test_monoton_skipped");
 
