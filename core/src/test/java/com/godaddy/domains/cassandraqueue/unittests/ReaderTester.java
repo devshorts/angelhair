@@ -62,14 +62,12 @@ public class ReaderTester extends TestBase {
 
         assertThat(readAndAckMessage(reader, "hi", 100L)).isTrue();
 
-        for (int i = 0; i < 1000; i++) {
-            assertThat(reader.nextMessage(Duration.standardSeconds(1)).isPresent()).isFalse();
-        }
+        assertThat(reader.nextMessage(Duration.standardSeconds(1)).isPresent()).isFalse();
     }
 
     @Test
-    public void test_ack_next_message_should_never_be_visible() throws Exception {
-        Reader reader = setupReaderAndQueue(QueueName.valueOf("test_ack_next_message"));
+    public void test_acked_message_should_never_be_visible() throws Exception {
+        Reader reader = setupReaderAndQueue(QueueName.valueOf("test_ack_next_message_should_never_be_visible"));
 
         putMessage(0, "hi");
 
@@ -77,7 +75,7 @@ public class ReaderTester extends TestBase {
 
         Thread.sleep(1000);
 
-        for (int i = 0; i < 10; i++){
+        for (int i = 0; i < 10; i++) {
             final Optional<Message> message = reader.nextMessage(Duration.millis(300));
 
             assertThat(message.isPresent()).isFalse();

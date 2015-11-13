@@ -85,9 +85,7 @@ public class ReaderImpl implements Reader {
         }
 
         if (messageAt.isVisible() && messageAt.isNotAcked()) {
-            if (dataContext.getMessageRepository().consumeNewlyVisibleMessage(messageAt, invisiblity)) {
-                return Optional.of(messageAt);
-            }
+            return dataContext.getMessageRepository().consumeNewlyVisibleMessage(messageAt, invisiblity);
         }
         else if (messageAt.isAcked()) {
             return setNextInvisiblityPointer(pointer, invisiblity);

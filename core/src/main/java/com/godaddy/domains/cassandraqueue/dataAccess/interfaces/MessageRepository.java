@@ -20,7 +20,7 @@ public interface MessageRepository {
 
     boolean consumeMessage(final Message message, final Duration duration);
 
-    boolean consumeNewlyVisibleMessage(final Message message, final Duration duration);
+    Optional<Message> consumeNewlyVisibleMessage(final Message message, final Duration duration);
 
     boolean ackMessage(final Message message);
 

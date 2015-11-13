@@ -62,7 +62,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         }
     }
 
-    public boolean consumeNewlyVisibleMessage(final Message message, final Duration duration) {
+    public Optional<Message> consumeNewlyVisibleMessage(final Message message, final Duration duration) {
         final DateTime now = DateTime.now(DateTimeZone.UTC).plus(duration);
 
         final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
@@ -80,7 +80,12 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                                 .onlyIf(eq(Tables.Message.VERSION, message.getVersion()))
                                                 .and(eq(Tables.Message.ACKED, false));
 
-        return session.execute(statement).wasApplied();
+        if(session.execute(statement).wasApplied()){
+            message.setVersion(newVersion);
+            return Optional.of(message);
+        }
+
+        return Optional.empty();
     }
 
     @Override
