@@ -71,9 +71,9 @@ public class ReaderTester extends TestBase {
     public void test_ack_next_message_should_never_be_visible() throws Exception {
         Reader reader = setupReaderAndQueue(QueueName.valueOf("test_ack_next_message"));
 
-        putMessage(0, "hi");
+        putMessage(0, "ghost");
 
-        readAndAckMessage(reader, "hi", 1L);
+        assertThat(readAndAckMessage(reader, "ghost", 1L)).isTrue();
 
         Thread.sleep(1000);
 
@@ -136,8 +136,6 @@ public class ReaderTester extends TestBase {
 
         final PopReceipt popReceipt = PopReceipt.from(message.get());
 
-        boolean acked = reader.ackMessage(popReceipt);
-
-        return acked;
+        return reader.ackMessage(popReceipt);
     }
 }

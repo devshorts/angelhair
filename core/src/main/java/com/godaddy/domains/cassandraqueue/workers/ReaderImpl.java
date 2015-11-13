@@ -36,7 +36,7 @@ public class ReaderImpl implements Reader {
 
     @Override
     public Optional<Message> nextMessage(Duration invisibility) {
-        final Optional<Message> nowVisibleMessage = getNowVisibleMessage(getCurrentInvisPointer(), invisibility);
+        final Optional<Message> nowVisibleMessage = tryGetNowVisibleMessage(getCurrentInvisPointer(), invisibility);
 
         if (nowVisibleMessage.isPresent()) {
 
@@ -73,36 +73,53 @@ public class ReaderImpl implements Reader {
         return dataContext.getPointerRepository().getReaderCurrentBucket();
     }
 
-    private Optional<Message> getNowVisibleMessage(InvisibilityMessagePointer pointer, Duration invisiblity) {
+    private Optional<Message> tryGetNowVisibleMessage(InvisibilityMessagePointer pointer, Duration invisiblity) {
         final Message messageAt = dataContext.getMessageRepository().getMessage(pointer);
 
         if(messageAt == null){
-            return setNextInvisiblityPointer(pointer, invisiblity);
+            // invis pointer points to garbage, try and find something else
+            return tryGetNextInvisMessage(pointer, invisiblity);
         }
 
         if (messageAt.getDeliveryCount() == 0) {
+            // it hasn't been sent out for delivery yet so can't be invisible
             return Optional.empty();
         }
 
         if (messageAt.isVisible() && messageAt.isNotAcked()) {
+            // the message has come back alive
             if (dataContext.getMessageRepository().consumeNewlyVisibleMessage(messageAt, invisiblity)) {
+
+                // give it back to the caller since its ready for processing
                 return Optional.of(messageAt);
             }
         }
         else if (messageAt.isAcked()) {
-            return setNextInvisiblityPointer(pointer, invisiblity);
+            // current message is acked that the invis pointer was pointing to
+            // try and move the invis pointer to the next lowest monotonic invisible
+            return tryGetNextInvisMessage(pointer, invisiblity);
         }
 
         return Optional.empty();
     }
 
-    private Optional<Message> setNextInvisiblityPointer(final InvisibilityMessagePointer pointer, Duration invisiblity) {
+    private Optional<Message> tryGetNextInvisMessage(final InvisibilityMessagePointer pointer, Duration invisiblity) {
+        // check all the messages in the bucket the invis pointer is currently on
         final ReaderBucketPointer bucketPointer = pointer.toBucketPointer(config.getBucketSize());
 
         final List<Message> messages = dataContext.getMessageRepository().getMessages(bucketPointer);
 
-        if(messages.isEmpty() || messages.stream().allMatch(m -> m.getIndex() == Tombstone.index)){
+        if(messages.isEmpty()){
+            // no messages, can't move pointer since nothing to move to
             return Optional.empty();
+        }
+
+        if(messages.stream().allMatch(m -> m.getIndex() == Tombstone.index)){
+            // somehow the bucket is basically empty and we need to skip it
+            final InvisibilityMessagePointer pointerForNextBucket = getPointerForNextBucket(pointer);
+
+            // retstart algo in next bucket
+            return tryGetNowVisibleMessage(pointerForNextBucket, invisiblity);
         }
 
         final Optional<Message> first = messages.stream()
@@ -118,18 +135,29 @@ public class ReaderImpl implements Reader {
             return Optional.empty();
         }
 
-        logger.with(pointer).info("Moving invis pointer to next bucket");
+        final InvisibilityMessagePointer pointerForNextBucket = getPointerForNextBucket(pointer);
+
+        return tryGetNowVisibleMessage(pointerForNextBucket, invisiblity);
+    }
+
+    /**
+     * Given the current pointer, returns a new pointer that jumps to the start of the next bucket
+     * @param pointer
+     * @return
+     */
+    private InvisibilityMessagePointer getPointerForNextBucket(InvisibilityMessagePointer pointer){
+        final ReaderBucketPointer bucketPointer = pointer.toBucketPointer(config.getBucketSize());
 
         final MonotonicIndex monotonicIndex = bucketPointer.next().startOf(config.getBucketSize());
 
-        return getNowVisibleMessage(InvisibilityMessagePointer.valueOf(monotonicIndex), invisiblity);
+        return InvisibilityMessagePointer.valueOf(monotonicIndex);
     }
 
     private Optional<Message> getAndMark(ReaderBucketPointer currentBucket, Duration invisiblity) {
 
         final List<Message> allMessages = dataContext.getMessageRepository().getMessages(currentBucket);
 
-        final boolean allComplete = allMessages.stream().allMatch(Message::isNotVisible);
+        final boolean allComplete = allMessages.stream().allMatch(Message::isAcked);
 
         if (allComplete) {
             if (allMessages.size() == config.getBucketSize() || monotonPastBucket(currentBucket)) {
