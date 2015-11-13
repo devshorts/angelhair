@@ -120,3 +120,7 @@ a leader for the repair worker. This prevents multiple repair workers re-publish
 - [The job of the repair worker](brainstorming_images/repair_worker.JPG)
 - [Tables required](brainstorming_images/tables.JPG)
 - [Ack and invisibility](brainstorming_images/ack_and_invisibility.JPG)
+
+## Coverage report
+
+![Coverage report picture](img/coverage_report.PNG)
