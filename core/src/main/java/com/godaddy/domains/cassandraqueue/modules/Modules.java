@@ -11,5 +11,6 @@ public class Modules {
                           new SessionProviderModule(),
                           new RepairWorkerModule(),
                           new ReaderModule(),
-                          new LeadershipModule());
+                          new LeadershipModule(),
+                          new ConfigProviderModule());
 }
