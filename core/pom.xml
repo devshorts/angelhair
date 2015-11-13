@@ -156,6 +156,16 @@
             <artifactId>jgroups-raft</artifactId>
             <version>0.2</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.squareup.retrofit</groupId>
+            <artifactId>retrofit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.squareup.retrofit</groupId>
+            <artifactId>converter-jackson</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <finalName>${project.artifactId}-${project.version}-r${buildNumber}</finalName>

@@ -13,6 +13,7 @@
 
     <modules>
         <module>core</module>
+        <module>client</module>
     </modules>
 
     <scm>
@@ -144,6 +145,10 @@
         <guava.retry.version>1.0.7</guava.retry.version>
 
         <domains.dropwizard.logstash.version>1.0</domains.dropwizard.logstash.version>
+
+        <retrofit.version>2.0.0-beta2</retrofit.version>
+        <retrofit.converter.jackson.version>2.0.0-beta2</retrofit.converter.jackson.version>
+
         <!--Plugin versions-->
         <maven.compiler.plugin.version>3.0</maven.compiler.plugin.version>
         <maven.exec.version>1.2.1</maven.exec.version>
@@ -488,6 +493,18 @@
                 <groupId>org.apache.xmlrpc</groupId>
                 <artifactId>xmlrpc-client</artifactId>
                 <version>${apache.xmlrpc.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.squareup.retrofit</groupId>
+                <artifactId>retrofit</artifactId>
+                <version>${retrofit.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.squareup.retrofit</groupId>
+                <artifactId>converter-jackson</artifactId>
+                <version>${retrofit.converter.jackson.version}</version>
             </dependency>
         </dependencies>
 

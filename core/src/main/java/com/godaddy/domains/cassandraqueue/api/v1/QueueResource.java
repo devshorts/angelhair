@@ -58,8 +58,7 @@ public class QueueResource {
     @Path("/")
     @ApiOperation(value = "Create Queue")
     @ApiResponses(value = { @ApiResponse(code = 201, message = "Created") })
-    public Response putMessage(
-            QueueName queueName) {
+    public Response createQueue(QueueName queueName) {
 
         queueRepository.createQueue(queueName);
 
