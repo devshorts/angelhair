@@ -53,7 +53,7 @@ public class LiveServer {
 
     public URI getBaseUri(){
 
-        final String uri = String.format("http://localhost:%s", serviceConfigurationTestServiceServiceTestRunner.getLocalPort());
+        final String uri = String.format("http://localhost:%s/api/", serviceConfigurationTestServiceServiceTestRunner.getLocalPort());
 
         return URI.create(uri);
     }

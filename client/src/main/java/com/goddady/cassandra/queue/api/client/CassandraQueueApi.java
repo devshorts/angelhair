@@ -24,25 +24,25 @@ public interface CassandraQueueApi {
         return service;
     }
 
-    @POST("/api/v1/queues")
+    @POST("v1/queues")
     Call<ResponseBody> createQueue(@Body String queueName);
 
-    @GET("/api/v1/queues/{queueName}/messages/next")
+    @GET("v1/queues/{queueName}/messages/next")
     Call<MessageResponse> getMessage(@Path("queueName") String queueName);
 
-    @GET("/api/v1/queues/{queueName}/messages/next")
+    @GET("v1/queues/{queueName}/messages/next")
     Call<MessageResponse> getMessage(@Path("queueName") String queueName, @Query("invisibilityTime") Long invisibilityTime);
 
-    @POST("/api/v1/queues/{queueName}/messages")
+    @POST("v1/queues/{queueName}/messages")
     Call<ResponseBody> addMessage(@Path("queueName") String queueName, @Body String message);
 
-    @POST("/api/v1/queues/{queueName}/messages")
+    @POST("v1/queues/{queueName}/messages")
     Call<ResponseBody> addMessage(
             @Path("queueName") String queueName,
             @Body String message,
             @Query("initialInvisibilitySeconds") Long initialInvisibilitySeconds);
 
-    @DELETE("/api/v1/queues/{queueName}/messages")
+    @DELETE("v1/queues/{queueName}/messages")
     Call<ResponseBody> ackMessage(
             @Path("queueName") String queueName,
             @Query("popReceipt") String popReceipt);
