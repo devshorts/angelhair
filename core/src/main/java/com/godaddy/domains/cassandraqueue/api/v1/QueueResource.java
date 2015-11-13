@@ -1,13 +1,11 @@
 package com.godaddy.domains.cassandraqueue.api.v1;
 
-import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
 import com.godaddy.domains.cassandraqueue.factories.MessageRepoFactory;
 import com.godaddy.domains.cassandraqueue.factories.MonotonicRepoFactory;
 import com.godaddy.domains.cassandraqueue.factories.ReaderFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
-import com.godaddy.domains.cassandraqueue.workers.Reader;
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import com.google.inject.Inject;
