@@ -58,22 +58,40 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         final boolean wasInserted = session.execute(statement).wasApplied();
 
         if (!wasInserted) {
-            throw new ExistingMonotonFoundException(String.format("Tryed to insert a message with the monoton value of '%s' which already exists", message.getIndex()));
+            throw new ExistingMonotonFoundException(String.format("Tried to insert a message with the monoton value of '%s' which already exists", message.getIndex()));
         }
     }
 
+    public boolean consumeNewlyVisibleMessage(final Message message, final Duration duration) {
+        final DateTime now = DateTime.now(DateTimeZone.UTC).plus(duration);
+
+        final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
+
+        final int newVersion = message.getVersion() + 1;
+        final int deliveryCount = message.getDeliveryCount() + 1;
+
+        final Statement statement = QueryBuilder.update(Tables.Message.TABLE_NAME)
+                                                .with(set(Tables.Message.NEXT_VISIBLE_ON, now.toDate()))
+                                                .and(set(Tables.Message.VERSION, newVersion))
+                                                .and(set(Tables.Message.DELIVERY_COUNT, deliveryCount))
+                                                .where(eq(Tables.Message.QUEUENAME, queueName.get()))
+                                                .and(eq(Tables.Message.BUCKET_NUM, bucketPointer))
+                                                .and(eq(Tables.Message.MONOTON, message.getIndex().get()))
+                                                .onlyIf(eq(Tables.Message.VERSION, message.getVersion()));
+
+        return session.execute(statement).wasApplied();
+    }
+
     @Override
-    public boolean markMessageInvisible(final Message message, final Duration duration, final boolean updateVersion) {
+    public boolean updateMessageInvisibility(final Message message, final Duration duration) {
         // update message invisiblity value to utc now + duration
         // conditionally update index to use invisiblity if version the same
 
         final DateTime now = DateTime.now(DateTimeZone.UTC).plus(duration);
 
         final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
-        final int newVersion = message.getVersion() + (updateVersion ? 1 : 0);
         final Statement statement = QueryBuilder.update(Tables.Message.TABLE_NAME)
                                                 .with(set(Tables.Message.NEXT_VISIBLE_ON, now.toDate()))
-                                                .and(set(Tables.Message.VERSION, newVersion))
                                                 .and(set(Tables.Message.DELIVERY_COUNT, message.getDeliveryCount() + 1))
                                                 .where(eq(Tables.Message.QUEUENAME, queueName.get()))
                                                 .and(eq(Tables.Message.BUCKET_NUM, bucketPointer))
