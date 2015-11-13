@@ -6,9 +6,9 @@ import com.godaddy.domains.cassandraqueue.factories.ReaderFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
-import com.goddady.cassandra.queue.api.client.QueueName;
 import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
 import com.godaddy.domains.cassandraqueue.workers.Reader;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Injector;
 import org.joda.time.Duration;
 import org.junit.Before;
@@ -21,8 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReaderTester extends TestBase {
     private Injector defaultInjector;
-
-    private Reader reader;
 
     private QueueName queueName;
 
@@ -37,7 +35,7 @@ public class ReaderTester extends TestBase {
 
     @Test
     public void delivery_count_increases_after_message_expires_and_is_redelivered() throws Exception {
-        setupReaderAndQueue(QueueName.valueOf("delivery_count_increases_after_message_expires_and_is_redelivered"));
+        Reader reader = setupReaderAndQueue(QueueName.valueOf("delivery_count_increases_after_message_expires_and_is_redelivered"));
 
         putMessage(0, "hi");
 
@@ -58,20 +56,24 @@ public class ReaderTester extends TestBase {
 
     @Test
     public void test_ack_next_message() throws Exception {
-        setupReaderAndQueue(QueueName.valueOf("test_ack_next_message"));
+        Reader reader = setupReaderAndQueue(QueueName.valueOf("test_ack_next_message"));
 
         putMessage(0, "hi");
 
-        readAndAckMessage("hi", 100L);
+        assertThat(readAndAckMessage(reader, "hi", 100L)).isTrue();
+
+        for (int i = 0; i < 1000; i++) {
+            assertThat(reader.nextMessage(Duration.standardSeconds(1)).isPresent()).isFalse();
+        }
     }
 
     @Test
     public void test_ack_next_message_should_never_be_visible() throws Exception {
-        setupReaderAndQueue(QueueName.valueOf("test_ack_next_message"));
+        Reader reader = setupReaderAndQueue(QueueName.valueOf("test_ack_next_message"));
 
         putMessage(0, "hi");
 
-        readAndAckMessage("hi", 1L);
+        readAndAckMessage(reader, "hi", 1L);
 
         Thread.sleep(1000);
 
@@ -88,12 +90,12 @@ public class ReaderTester extends TestBase {
     public void test_monoton_skipped() throws Exception {
         final QueueName test_monoton_skipped = QueueName.valueOf("test_monoton_skipped");
 
-        setupReaderAndQueue(test_monoton_skipped);
+        Reader reader = setupReaderAndQueue(test_monoton_skipped);
 
-        for(int i = 0; i < bucketConfiguration.getBucketSize() - 1; i++) {
+        for (int i = 0; i < bucketConfiguration.getBucketSize() - 1; i++) {
             putMessage(0, "foo");
 
-            readAndAckMessage("foo", 100L);
+            assertThat(readAndAckMessage(reader, "foo", 100L)).isTrue();
         }
 
         //last monoton of the bucket is grabbed and will be skipped over.
@@ -102,16 +104,16 @@ public class ReaderTester extends TestBase {
         //Put message in new bucket, verify that message can be read after monoton was skipped and new bucket contains message.
         putMessage(0, "bar");
 
-        readAndAckMessage("bar", 100L);
+        assertThat(readAndAckMessage(reader, "bar", 100L)).isTrue();
     }
 
-    private void setupReaderAndQueue(QueueName queueName) {
+    private Reader setupReaderAndQueue(QueueName queueName) {
         final ReaderFactory readerFactory = defaultInjector.getInstance(ReaderFactory.class);
         this.queueName = queueName;
 
         setupQueue(queueName);
 
-        reader = readerFactory.forQueue(queueName);
+        return readerFactory.forQueue(queueName);
     }
 
     private void putMessage(int seconds, String blob) throws Exception {
@@ -127,14 +129,11 @@ public class ReaderTester extends TestBase {
                        .build(), Duration.standardSeconds(seconds));
     }
 
-    private void readAndAckMessage(String blob, Long invisDuration) {
+    private boolean readAndAckMessage(Reader reader, String blob, Long invisDuration) {
         Optional<Message> message = reader.nextMessage(Duration.standardSeconds(invisDuration));
 
         assertTrue(message.get().getBlob().equals(blob));
 
-        boolean acked = reader.ackMessage(PopReceipt.from(message.get()));
-
-        assertTrue(acked);
+        return reader.ackMessage(PopReceipt.from(message.get()));
     }
-
 }
