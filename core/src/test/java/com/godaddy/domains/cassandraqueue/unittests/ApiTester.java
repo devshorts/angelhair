@@ -4,11 +4,12 @@ import com.godaddy.domains.cassandraqueue.unittests.modules.InMemorySessionProvi
 import com.godaddy.domains.cassandraqueue.unittests.server.LiveServer;
 import com.godaddy.logging.Logger;
 import com.goddady.cassandra.queue.api.client.CassandraQueueApi;
-import com.goddady.cassandra.queue.api.client.MessageResponse;
+import com.goddady.cassandra.queue.api.client.GetMessageResponse;
 import com.goddady.cassandra.queue.api.client.QueueCreateOptions;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import com.squareup.okhttp.ResponseBody;
 import lombok.Cleanup;
+import org.junit.Ignore;
 import org.junit.Test;
 import retrofit.Response;
 
@@ -34,9 +35,9 @@ public class ApiTester extends TestBase {
 
         client.addMessage(queueName, "hi").execute();
 
-        final Response<MessageResponse> message = client.getMessage(queueName).execute();
+        final Response<GetMessageResponse> message = client.getMessage(queueName).execute();
 
-        final MessageResponse body = message.body();
+        final GetMessageResponse body = message.body();
 
         assertThat(body).isNotNull();
 
@@ -48,4 +49,47 @@ public class ApiTester extends TestBase {
 
         assertThat(ackResponse.isSuccess()).isTrue();
     }
+
+    @Test
+    @Ignore
+    public void demo_invis_client() throws Exception {
+        @Cleanup("stop") LiveServer server = new LiveServer();
+        server.getOverridableModules().add(new InMemorySessionProvider(session));
+        server.start();
+
+        final CassandraQueueApi client = CassandraQueueApi.createClient(server.getBaseUri().toString());
+
+        final QueueName queueName = QueueName.valueOf("test");
+
+        client.createQueue(new QueueCreateOptions(queueName)).execute();
+
+        int count = 100;
+
+        for (int i = 0; i < count; i++) {
+            client.addMessage(queueName, Integer.valueOf(i).toString()).execute();
+        }
+
+        for (int i = 0; i < 100; i++) {
+            final Response<GetMessageResponse> message = client.getMessage(queueName, 3L).execute();
+
+            final GetMessageResponse body = message.body();
+
+            assertThat(body).isNotNull();
+
+            final String popReceipt = body.getPopReceipt();
+
+            System.out.println(String.format("Message id: %s, Delivery count %s", body.getMessage(), body.getDeliveryCount()));
+
+            if (i % 5 == 0) {
+            }
+            else {
+                assertThat(popReceipt).isNotNull();
+
+                final Response<ResponseBody> ackResponse = client.ackMessage(queueName, popReceipt).execute();
+
+                assertThat(ackResponse.isSuccess()).isTrue();
+            }
+        }
+    }
+
 }

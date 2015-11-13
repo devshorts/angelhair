@@ -28,10 +28,10 @@ public interface CassandraQueueApi {
     Call<ResponseBody> createQueue(@Body QueueCreateOptions queueName);
 
     @GET("v1/queues/{queueName}/messages/next")
-    Call<MessageResponse> getMessage(@Path("queueName") QueueName queueName);
+    Call<GetMessageResponse> getMessage(@Path("queueName") QueueName queueName);
 
     @GET("v1/queues/{queueName}/messages/next")
-    Call<MessageResponse> getMessage(@Path("queueName") QueueName queueName, @Query("invisibilityTime") Long invisibilityTime);
+    Call<GetMessageResponse> getMessage(@Path("queueName") QueueName queueName, @Query("invisibilityTime") Long invisibilityTimeSeconds);
 
     @POST("v1/queues/{queueName}/messages")
     Call<ResponseBody> addMessage(@Path("queueName") QueueName queueName, @Body String message);

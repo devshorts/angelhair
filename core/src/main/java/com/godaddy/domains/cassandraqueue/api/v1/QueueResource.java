@@ -7,6 +7,7 @@ import com.godaddy.domains.cassandraqueue.factories.MonotonicRepoFactory;
 import com.godaddy.domains.cassandraqueue.factories.ReaderFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
+import com.goddady.cassandra.queue.api.client.GetMessageResponse;
 import com.goddady.cassandra.queue.api.client.QueueCreateOptions;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import com.godaddy.logging.Logger;
@@ -89,10 +90,10 @@ public class QueueResource {
             return buildQueueNotFoundResponse(queueName);
         }
 
-        final Optional<Message> nextMessage;
+        final Optional<Message> messageOptional;
 
         try {
-            nextMessage = readerFactory.forQueue(queueName)
+            messageOptional = readerFactory.forQueue(queueName)
                                        .nextMessage(Duration.standardSeconds(invisibilityTime));
         }
         catch (Exception e) {
@@ -100,16 +101,19 @@ public class QueueResource {
             return buildErrorResponse("GetMessage", queueName, e);
         }
 
-        if (!nextMessage.isPresent()) {
+        if (!messageOptional.isPresent()) {
             return Response.noContent().build();
         }
 
-        final String popReceipt = PopReceipt.from(nextMessage.get()).toString();
+        final Message messageInstance = messageOptional.get();
 
-        final String message = nextMessage.get().getBlob();
+        final String popReceipt = PopReceipt.from(messageInstance).toString();
+
+        final String message = messageInstance.getBlob();
         final GetMessageResponse response = new GetMessageResponse(
                 popReceipt,
-                message
+                message,
+                messageInstance.getDeliveryCount()
         );
 
         return Response.ok(response)
