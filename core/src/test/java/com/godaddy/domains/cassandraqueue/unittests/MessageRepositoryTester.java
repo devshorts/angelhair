@@ -96,7 +96,7 @@ public class MessageRepositoryTester extends TestBase {
 
         assertThat(message.isAcked()).isFalse();
 
-        context.getMessageRepository().markMessageInvisible(message, Duration.standardDays(30), true);
+        context.getMessageRepository().consumeNewlyVisibleMessage(message, Duration.standardDays(30));
 
         final boolean ackSucceeded = context.getMessageRepository().ackMessage(message);
         assertThat(ackSucceeded).isFalse();

@@ -12,26 +12,24 @@ import java.util.List;
 import java.util.Optional;
 
 public interface MessageRepository {
-    void putMessage(Message message, Duration initialInvisibility) throws ExistingMonotonFoundException;
+    void putMessage(final Message message, final Duration initialInvisibility) throws ExistingMonotonFoundException;
 
-    default void putMessage(Message message) throws ExistingMonotonFoundException {
+    default void putMessage(final Message message) throws ExistingMonotonFoundException {
         putMessage(message, Duration.ZERO);
     }
 
-    default boolean markMessageInvisible(Message message, Duration duration) {
-        return markMessageInvisible(message, duration, false);
-    }
+    boolean updateMessageInvisibility(final Message message, final Duration duration);
 
-    boolean markMessageInvisible(Message message, Duration duration, boolean updateVersion);
+    boolean consumeNewlyVisibleMessage(final Message message, final Duration duration);
 
-    boolean ackMessage(Message message);
+    boolean ackMessage(final Message message);
 
-    List<Message> getMessages(BucketPointer bucketPointer);
+    List<Message> getMessages(final BucketPointer bucketPointer);
 
-    void tombstone(ReaderBucketPointer bucketPointer);
+    void tombstone(final ReaderBucketPointer bucketPointer);
 
-    Message getMessage(MessagePointer pointer);
+    Message getMessage(final MessagePointer pointer);
 
-    Optional<DateTime> tombstoneExists(BucketPointer bucketPointer);
+    Optional<DateTime> tombstoneExists(final BucketPointer bucketPointer);
 
 }
