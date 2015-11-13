@@ -23,10 +23,14 @@ public class ReaderTester extends TestBase {
         final Injector defaultInjector = getDefaultInjector();
 
         final ReaderFactory readerFactory = defaultInjector.getInstance(ReaderFactory.class);
-        final Reader reader = readerFactory.forQueue(QueueName.valueOf("jakes"));
+        final QueueName queueName = QueueName.valueOf("test_ack_next_message");
+
+        setupQueue(queueName);
+
+        final Reader reader = readerFactory.forQueue(queueName);
 
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
-        final DataContext context = factory.forQueue(QueueName.valueOf("jakes"));
+        final DataContext context = factory.forQueue(queueName);
 
         final MonotonicIndex monoton = getTestMonoton();
 

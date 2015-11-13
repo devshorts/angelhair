@@ -2,6 +2,7 @@ package com.godaddy.domains.cassandraqueue.unittests;
 
 import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
 import com.godaddy.domains.cassandraqueue.dataAccess.exceptions.ExistingMonotonFoundException;
+import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.factories.RepairWorkerFactory;
@@ -35,7 +36,9 @@ public class RepairTests extends TestBase {
 
         final RepairWorkerFactory repairWorkerFactory = defaultInjector.getInstance(RepairWorkerFactory.class);
 
-        final QueueName queueName = QueueName.valueOf("test_repairs");
+        final QueueName queueName = QueueName.valueOf("repairer_republishes_newly_visible_in_tombstoned_bucket");
+
+        setupQueue(queueName);
 
         repairWorkerFactory.forQueue(queueName);
 
@@ -85,7 +88,9 @@ public class RepairTests extends TestBase {
 
         final RepairWorkerFactory repairWorkerFactory = defaultInjector.getInstance(RepairWorkerFactory.class);
 
-        final QueueName queueName = QueueName.valueOf("test_repairs");
+        final QueueName queueName = QueueName.valueOf("repairer_moves_off_ghost_messages");
+
+        setupQueue(queueName);
 
         repairWorkerFactory.forQueue(queueName);
 

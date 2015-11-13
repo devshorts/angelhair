@@ -21,7 +21,11 @@ public class MessageRepositoryTester extends TestBase {
         final Injector defaultInjector = getDefaultInjector();
 
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
-        final DataContext context = factory.forQueue(QueueName.valueOf("jakes"));
+        final QueueName queueName = QueueName.valueOf("put_message_should_succeed");
+
+        setupQueue(queueName);
+
+        final DataContext context = factory.forQueue(queueName);
 
         final MonotonicIndex monoton = getTestMonoton();
 
@@ -42,7 +46,10 @@ public class MessageRepositoryTester extends TestBase {
         final Injector defaultInjector = getDefaultInjector();
 
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
-        final DataContext context = factory.forQueue(QueueName.valueOf("jakes"));
+        final QueueName queueName = QueueName.valueOf("ack_message_should_succeed");
+        setupQueue(queueName);
+
+        final DataContext context = factory.forQueue(queueName);
 
         final MonotonicIndex monoton = getTestMonoton();
 
@@ -71,7 +78,11 @@ public class MessageRepositoryTester extends TestBase {
         final Injector defaultInjector = getDefaultInjector();
 
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
-        final DataContext context = factory.forQueue(QueueName.valueOf("jakes"));
+        final QueueName queueName = QueueName.valueOf("ack_message_after_version_changed_should_fail");
+
+        setupQueue(queueName);
+
+        final DataContext context = factory.forQueue(queueName);
 
         final MonotonicIndex monoton = getTestMonoton();
 
@@ -85,7 +96,7 @@ public class MessageRepositoryTester extends TestBase {
 
         assertThat(message.isAcked()).isFalse();
 
-        context.getMessageRepository().markMessageInvisible(message, Duration.standardDays(30));
+        context.getMessageRepository().markMessageInvisible(message, Duration.standardDays(30), true);
 
         final boolean ackSucceeded = context.getMessageRepository().ackMessage(message);
         assertThat(ackSucceeded).isFalse();
@@ -100,7 +111,11 @@ public class MessageRepositoryTester extends TestBase {
         final Injector defaultInjector = getDefaultInjector();
 
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
-        final DataContext context = factory.forQueue(QueueName.valueOf("jakes"));
+        final QueueName queueName = QueueName.valueOf("an_added_tombstone_should_exist");
+
+        setupQueue(queueName);
+
+        final DataContext context = factory.forQueue(queueName);
 
         final MonotonicIndex monoton = getTestMonoton();
 

@@ -15,13 +15,14 @@ public class QueueRepositoryTester extends TestBase {
         final QueueRepository repo = defaultInjector.getInstance(QueueRepository.class);
 
 
-        final QueueName queueName = QueueName.valueOf("boom");
+        final QueueName queueName = QueueName.valueOf("queue_operations");
+
         assertThat(repo.queueExists(queueName)).isEqualTo(false);
 
         repo.createQueue(queueName);
 
         assertThat(repo.queueExists(queueName)).isEqualTo(true);
 
-        assertThat(repo.getQueues().size()).isEqualTo(1);
+        assertThat(repo.getQueues()).contains(queueName);
     }
 }

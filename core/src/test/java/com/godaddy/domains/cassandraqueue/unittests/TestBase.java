@@ -3,7 +3,9 @@ package com.godaddy.domains.cassandraqueue.unittests;
 import ch.qos.logback.classic.Level;
 import com.datastax.driver.core.Session;
 import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
+import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
+import com.godaddy.domains.cassandraqueue.model.QueueName;
 import com.godaddy.domains.cassandraqueue.modules.Modules;
 import com.godaddy.domains.cassandraqueue.unittests.modules.InMemorySessionProvider;
 import com.godaddy.domains.cassandraqueue.unittests.modules.MockEnvironmentModule;
@@ -67,8 +69,16 @@ public class TestBase {
         return getDefaultInjector(new ServiceConfiguration());
     }
 
-    private static int counter = 0;
+    protected void setupQueue(QueueName queueName, Injector injector) {
+        final QueueRepository queueRepository = injector.getInstance(QueueRepository.class);
+        queueRepository.createQueue(queueName);
+    }
 
+    protected void setupQueue(QueueName queueName) {
+        setupQueue(queueName, getDefaultInjector());
+    }
+
+    private static int counter = 0;
     protected int getNextIntForTesting() {
         return counter++;
     }
