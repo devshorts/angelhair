@@ -1,13 +1,10 @@
 package com.godaddy.domains.cassandraqueue.unittests;
 
-import com.datastax.driver.core.Session;
-import com.godaddy.domains.cassandraqueue.modules.SessionProviderModule;
+import com.godaddy.domains.cassandraqueue.unittests.modules.InMemorySessionProvider;
 import com.godaddy.domains.cassandraqueue.unittests.server.LiveServer;
-import com.godaddy.domains.common.test.guice.OverridableModule;
 import com.godaddy.logging.Logger;
 import com.goddady.cassandra.queue.api.client.CassandraQueueApi;
 import com.goddady.cassandra.queue.api.client.MessageResponse;
-import com.google.inject.Module;
 import com.squareup.okhttp.ResponseBody;
 import lombok.Cleanup;
 import org.junit.Test;
@@ -17,26 +14,13 @@ import static com.godaddy.logging.LoggerFactory.getLogger;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiTester extends TestBase {
-    class SessionModule extends OverridableModule {
-
-        @Override
-        public Class<? extends Module> getOverridesModule() {
-            return SessionProviderModule.class;
-        }
-
-        @Override
-        protected void configure() {
-            bind(Session.class).toInstance(session);
-        }
-    }
 
     private static final Logger logger = getLogger(ApiTester.class);
 
-
     @Test
-    public void test_all_the_time() throws Exception {
+    public void test_client_can_create_put_and_ack() throws Exception {
         @Cleanup("stop") LiveServer server = new LiveServer();
-        server.getOverridableModules().add(new SessionModule());
+        server.getOverridableModules().add(new InMemorySessionProvider(session));
         server.start();
 
 
