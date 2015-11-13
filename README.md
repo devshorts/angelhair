@@ -4,7 +4,7 @@ Project AngelHair
 ![Image of hummingbird cause they're cool aren't they?](img/angelhair.jpg)
 
 Angelhair is a a distributed queue built on cassandra. Yes, we know, queues on cassandra are an anti-pattern,
-but only when you use secondary indexes, and lots of polls and scans.
+but only when you use secondary indexes, and lots of polls and scans which AngelHair _doesn't_ do.
 
 Angelhair provides:
 
