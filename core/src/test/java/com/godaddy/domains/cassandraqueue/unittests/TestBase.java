@@ -2,6 +2,7 @@ package com.godaddy.domains.cassandraqueue.unittests;
 
 import com.datastax.driver.core.Session;
 import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
+import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.modules.Modules;
 import com.godaddy.domains.cassandraqueue.unittests.modules.InMemorySessionProvider;
 import com.godaddy.domains.cassandraqueue.unittests.modules.MockEnvironmentModule;
@@ -37,5 +38,15 @@ public class TestBase {
 
     protected Injector getDefaultInjector(){
         return getDefaultInjector(new ServiceConfiguration());
+    }
+
+    private static int counter = 0;
+
+    protected int getNextIntForTesting() {
+        return ++counter;
+    }
+
+    protected MonotonicIndex getTestMonoton(){
+        return MonotonicIndex.valueOf(getNextIntForTesting());
     }
 }

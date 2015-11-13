@@ -1,11 +1,14 @@
 package com.godaddy.domains.cassandraqueue.api.v1;
 
+import com.godaddy.domains.cassandraqueue.factories.MessageRepoFactory;
+import com.godaddy.domains.cassandraqueue.factories.MonotonicRepoFactory;
+import com.godaddy.domains.cassandraqueue.factories.ReaderFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
 import com.godaddy.domains.cassandraqueue.model.QueueName;
-import com.godaddy.domains.cassandraqueue.workers.Reader;
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
+import com.google.inject.Inject;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
 import com.wordnik.swagger.annotations.ApiResponse;
@@ -29,11 +32,16 @@ import java.util.Optional;
 public class QueueResource {
 
     private static final Logger logger = LoggerFactory.getLogger(QueueResource.class);
-    private final Reader reader;
+    private final ReaderFactory readerFactory;
+    private final MessageRepoFactory messageRepoFactory;
+    private final MonotonicRepoFactory monotonicRepoFactory;
 
 
-    public QueueResource(Reader reader) {
-        this.reader = reader;
+    @Inject
+    public QueueResource(ReaderFactory readerFactory, MessageRepoFactory messageRepoFactory, MonotonicRepoFactory monotonicRepoFactory) {
+        this.readerFactory = readerFactory;
+        this.messageRepoFactory = messageRepoFactory;
+        this.monotonicRepoFactory = monotonicRepoFactory;
     }
 
     @GET
@@ -47,10 +55,11 @@ public class QueueResource {
             @PathParam("queueName") QueueName queueName,
             @QueryParam("invisibilityTime") long invisibilityTime) {
 
-        final Optional<Message> nextMessage = reader.nextMessage(Duration.standardSeconds(invisibilityTime));
+        final Optional<Message> nextMessage = readerFactory.forQueue(queueName)
+                                                           .nextMessage(Duration.standardSeconds(invisibilityTime));
 
         if (!nextMessage.isPresent()) {
-            Response.noContent();
+            return Response.noContent().build();
         }
 
         final String popReceipt = PopReceipt.from(nextMessage.get()).toString();
@@ -75,16 +84,20 @@ public class QueueResource {
             @QueryParam("initialInvisibilityTime") long initialInvisibilityTime,
             String message) {
 
-        // Put message, initially invisible for initialInvisibilityTime
+        try {
+            messageRepoFactory.forQueue(queueName)
+                              .putMessage(Message.builder()
+                                                 .blob(message)
+                                                 .index(monotonicRepoFactory.forQueue(queueName)
+                                                                            .nextMonotonic())
+                                                 .build(),
+                                          Duration.millis(initialInvisibilityTime));
 
-
-        Object response = new Object() {
-
-        };
-
-        return Response.ok(response)
-                       .status(Response.Status.OK)
-                       .build();
+            return Response.noContent().build();
+        }
+        catch(Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @DELETE
@@ -95,14 +108,13 @@ public class QueueResource {
             @PathParam("queueName") QueueName queueName,
             @QueryParam("popReceipt") String popReceipt) {
 
-        // Put message, initially invisible for initialInvisibilityTime
+        boolean messageAcked = readerFactory.forQueue(queueName)
+                                            .ackMessage(PopReceipt.valueOf(popReceipt));
 
-        Object response = new Object() {
+        if(messageAcked) {
+            return Response.noContent().build();
+        }
 
-        };
-
-        return Response.ok(response)
-                       .status(Response.Status.OK)
-                       .build();
+        return Response.status(Response.Status.NOT_FOUND).build();
     }
 }
