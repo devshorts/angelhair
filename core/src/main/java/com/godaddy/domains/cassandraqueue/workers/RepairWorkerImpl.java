@@ -6,14 +6,15 @@ import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
-import com.goddady.cassandra.queue.api.client.QueueName;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
 import com.godaddy.domains.cassandraqueue.modules.annotations.RepairPool;
 import com.godaddy.logging.Logger;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import lombok.Data;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Seconds;
 
 import java.util.List;
@@ -110,7 +111,14 @@ public class RepairWorkerImpl implements RepairWorker {
 
         final DateTime plus = tombstoneTime.plus(configuration.getRepairWorkerTimeout());
 
-        final Seconds seconds = Seconds.secondsBetween(DateTime.now(), plus);
+        final DateTime now = DateTime.now(DateTimeZone.UTC);
+
+        final Seconds seconds = Seconds.secondsBetween(now, plus);
+
+        logger.with("tombstone-time", tombstoneTime)
+              .with("now", now)
+              .with("seconds-to-wait", seconds)
+              .debug("Need to wait for bucket to be time closed");
 
         if (seconds.isGreaterThan(Seconds.ZERO)) {
             // wait for the repair worker timeout
@@ -121,6 +129,8 @@ public class RepairWorkerImpl implements RepairWorker {
                 // ok
             }
         }
+
+        logger.success("Bucket should be closed");
     }
 
     private Optional<RepairContext> findFirstBucketToMonitor() {
