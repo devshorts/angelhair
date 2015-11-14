@@ -245,7 +245,7 @@ public class ReaderImpl implements Reader {
             // someone else did it, fuck it, try again for the next visibleMessage
             logger.with(visibleMessage).warn("Someone else consumed the visibleMessage!");
 
-//            return getAndMark(currentBucket, invisiblity);
+            return getAndMark(currentBucket, invisiblity);
         }
 
         return consumedMessage;

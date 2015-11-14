@@ -41,7 +41,7 @@ import java.util.Optional;
 import static java.util.stream.Collectors.toList;
 
 @Path("/v1/debug/queues")
-@Api(value = "/v1/debug/queues", description = "Queue DEBUG api")
+@Api(value = "/v1/debug/queues", description = "Queue diagnostic api")
 @Produces(MediaType.APPLICATION_JSON)
 public class QueueDebugResource extends BaseQueueResource {
 
@@ -60,11 +60,9 @@ public class QueueDebugResource extends BaseQueueResource {
 
     @GET
     @Path("/")
-    @ApiOperation(value = "Bucket sealed time")
+    @ApiOperation(value = "Get all queues")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 204, message = "No message"),
-            @ApiResponse(code = 404, message = "Queue doesn't exist"),
             @ApiResponse(code = 500, message = "Server Error")
     })
     public Response getQueues() {
@@ -195,10 +193,9 @@ public class QueueDebugResource extends BaseQueueResource {
 
     @GET
     @Path("/{queueName}/buckets/{bucketPointer}/tombstone")
-    @ApiOperation(value = "Bucket sealed time")
+    @ApiOperation(value = "Get bucket sealed time")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 204, message = "No message"),
             @ApiResponse(code = 404, message = "Queue doesn't exist"),
             @ApiResponse(code = 500, message = "Server Error")
     })
@@ -272,7 +269,7 @@ public class QueueDebugResource extends BaseQueueResource {
 
     @GET
     @Path("/{queueName}/pointers")
-    @ApiOperation(value = "Get current pointers")
+    @ApiOperation(value = "Get current pointer values")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 404, message = "Queue doesn't exist"),
