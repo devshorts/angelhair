@@ -118,7 +118,8 @@ public class QueueResource extends BaseQueueResource {
         final GetMessageResponse response = new GetMessageResponse(
                 popReceipt,
                 message,
-                messageInstance.getDeliveryCount()
+                messageInstance.getDeliveryCount(),
+                messageInstance.getTag()
         );
 
         return Response.ok(response)

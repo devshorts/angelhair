@@ -127,7 +127,8 @@ public class ReaderImpl implements Reader {
     public boolean ackMessage(final PopReceipt popReceipt) {
         final Message messageAt = dataContext.getMessageRepository().getMessage(popReceipt.getMessageIndex());
 
-        if (messageAt.getVersion() != popReceipt.getMessageVersion()) {
+        if (messageAt.getVersion() != popReceipt.getMessageVersion() ||
+            !messageAt.getTag().equals(popReceipt.getMessageTag())) {
             return false;
         }
 

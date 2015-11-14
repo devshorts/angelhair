@@ -12,14 +12,17 @@ import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MessagePointer;
 import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
 import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
+import com.goddady.cassandra.queue.api.client.MessageTag;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
@@ -42,6 +45,8 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         final DateTime now = DateTime.now(DateTimeZone.UTC);
         final Long bucketPointer = message.getIndex().toBucketPointer(queueDefinition.getBucketSize()).get();
 
+        final MessageTag randomMessageTag = MessageTag.random();
+
         Statement statement = QueryBuilder.insertInto(Tables.Message.TABLE_NAME)
                                           .ifNotExists()
                                           .value(Tables.Message.QUEUENAME, queueDefinition.getQueueName().get())
@@ -52,7 +57,8 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                           .value(Tables.Message.ACKED, false)
                                           .value(Tables.Message.MESSAGE, message.getBlob())
                                           .value(Tables.Message.NEXT_VISIBLE_ON, now.plus(initialInvisibility).toDate())
-                                          .value(Tables.Message.CREATED_DATE, now.toDate());
+                                          .value(Tables.Message.CREATED_DATE, now.toDate())
+                                          .value(Tables.Message.TAG, randomMessageTag.get());
 
         final boolean wasInserted = session.execute(statement).wasApplied();
 

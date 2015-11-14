@@ -4,7 +4,7 @@ import com.datastax.driver.core.Row;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.godaddy.domains.cassandraqueue.dataAccess.Tables;
 import com.godaddy.domains.cassandraqueue.dataAccess.Tombstone;
-import com.goddady.cassandra.queue.api.client.QueueName;
+import com.goddady.cassandra.queue.api.client.MessageTag;
 import lombok.Builder;
 import lombok.Data;
 import org.joda.time.DateTime;
@@ -25,6 +25,8 @@ public class Message {
     private int version = 0;
 
     private int deliveryCount = 0;
+
+    private MessageTag tag;
 
     public boolean isVisible() {
         return nextVisiblityAt == null || nextVisiblityAt.isBeforeNow();
@@ -58,6 +60,7 @@ public class Message {
                       .nextVisiblityAt(nextVisiblityAt)
                       .deliveryCount(deliveryCount)
                       .createdDate(createdDate)
+                      .tag(tag)
                       .build();
     }
 
@@ -71,6 +74,7 @@ public class Message {
                       .nextVisiblityAt(nextVisiblityAt)
                       .deliveryCount(deliveryCount)
                       .createdDate(createdDate)
+                      .tag(tag)
                       .build();
     }
 
@@ -84,6 +88,7 @@ public class Message {
                       .deliveryCount(row.getInt(Tables.Message.DELIVERY_COUNT))
                       .nextVisiblityAt(new DateTime(row.getDate(Tables.Message.NEXT_VISIBLE_ON)))
                       .createdDate(new DateTime(row.getDate(Tables.Message.CREATED_DATE)))
+                      .tag(MessageTag.valueOf(row.getString(Tables.Message.TAG)))
                       .build();
     }
 }

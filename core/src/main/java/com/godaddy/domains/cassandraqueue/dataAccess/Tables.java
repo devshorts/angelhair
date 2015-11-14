@@ -33,5 +33,6 @@ public final class Tables {
         public static final String ACKED = "acked";
         public static final String NEXT_VISIBLE_ON = "next_visible_on";
         public static final String CREATED_DATE = "created_date";
+        public static final String TAG = "tag";
     }
 }
