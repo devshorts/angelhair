@@ -227,7 +227,7 @@ public class ReaderImpl implements Reader {
             }
         }
 
-        final Optional<Message> foundMessage = allMessages.stream().filter(Message::isVisible).findFirst();
+        final Optional<Message> foundMessage = allMessages.stream().filter(m -> m.isNotAcked() && m.isVisible()).findFirst();
 
         if (!foundMessage.isPresent()) {
             return Optional.empty();

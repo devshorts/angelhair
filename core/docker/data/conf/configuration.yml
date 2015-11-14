@@ -1,5 +1,4 @@
 server:
-  name: localhost
   adminMinThreads: 1
   adminMaxThreads: 64
   rootPath: "/api/*"
