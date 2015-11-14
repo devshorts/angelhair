@@ -62,16 +62,19 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         }
     }
 
-    public Optional<Message> consumeNewlyVisibleMessage(final Message message, final Duration duration) {
-        final DateTime now = DateTime.now(DateTimeZone.UTC).plus(duration);
+    public Optional<Message> consumeMessage(final Message message, final Duration duration) {
 
         final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
 
+        /*
+            Three invariants when consuming: invis time, version, and delivery count are always bumped atomically
+         */
+        final DateTime newInvisTime = DateTime.now(DateTimeZone.UTC).plus(duration);
         final int newVersion = message.getVersion() + 1;
         final int deliveryCount = message.getDeliveryCount() + 1;
 
         final Statement statement = QueryBuilder.update(Tables.Message.TABLE_NAME)
-                                                .with(set(Tables.Message.NEXT_VISIBLE_ON, now.toDate()))
+                                                .with(set(Tables.Message.NEXT_VISIBLE_ON, newInvisTime.toDate()))
                                                 .and(set(Tables.Message.VERSION, newVersion))
                                                 .and(set(Tables.Message.DELIVERY_COUNT, deliveryCount))
                                                 .where(eq(Tables.Message.QUEUENAME, queueName.get()))
@@ -85,26 +88,6 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         }
 
         return Optional.empty();
-    }
-
-    @Override
-    public boolean consumeMessage(final Message message, final Duration duration) {
-        // update message invisiblity value to utc now + duration
-        // conditionally update index to use invisiblity if version the same
-
-        final DateTime now = DateTime.now(DateTimeZone.UTC).plus(duration);
-        final int deliveryCount = message.getDeliveryCount() + 1;
-        final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
-
-        final Statement statement = QueryBuilder.update(Tables.Message.TABLE_NAME)
-                                                .with(set(Tables.Message.NEXT_VISIBLE_ON, now.toDate()))
-                                                .and(set(Tables.Message.DELIVERY_COUNT, deliveryCount))
-                                                .where(eq(Tables.Message.QUEUENAME, queueName.get()))
-                                                .and(eq(Tables.Message.BUCKET_NUM, bucketPointer))
-                                                .and(eq(Tables.Message.MONOTON, message.getIndex().get()))
-                                                .onlyIf(eq(Tables.Message.VERSION, message.getVersion()));
-
-        return session.execute(statement).wasApplied();
     }
 
     @Override

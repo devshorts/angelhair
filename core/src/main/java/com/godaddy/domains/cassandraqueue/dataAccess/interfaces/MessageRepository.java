@@ -18,9 +18,7 @@ public interface MessageRepository {
         putMessage(message, Duration.ZERO);
     }
 
-    boolean consumeMessage(final Message message, final Duration duration);
-
-    Optional<Message> consumeNewlyVisibleMessage(final Message message, final Duration duration);
+    Optional<Message> consumeMessage(final Message message, final Duration duration);
 
     boolean ackMessage(final Message message);
 

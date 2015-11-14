@@ -98,13 +98,17 @@ public class MessageRepositoryTester extends TestBase {
 
         assertThat(message.isAcked()).isFalse();
 
-        context.getMessageRepository().consumeNewlyVisibleMessage(message, Duration.standardDays(30));
+        final Optional<Message> consumedMessage = context.getMessageRepository().consumeMessage(message, Duration.standardDays(30));
+
+        assertThat(consumedMessage.isPresent()).isTrue();
+        assertThat(message.getVersion()).isNotEqualTo(consumedMessage.get().getVersion());
 
         final boolean ackSucceeded = context.getMessageRepository().ackMessage(message);
         assertThat(ackSucceeded).isFalse();
 
         final Message ackedMessage = context.getMessageRepository()
                                             .getMessage(message.getIndex());
+
         assertThat(ackedMessage.isAcked()).isFalse();
     }
 
