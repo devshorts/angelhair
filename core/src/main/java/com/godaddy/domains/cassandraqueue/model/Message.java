@@ -1,7 +1,9 @@
 package com.godaddy.domains.cassandraqueue.model;
 
 import com.datastax.driver.core.Row;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.godaddy.domains.cassandraqueue.dataAccess.Tables;
+import com.godaddy.domains.cassandraqueue.dataAccess.Tombstone;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import lombok.Builder;
 import lombok.Data;
@@ -28,13 +30,20 @@ public class Message {
         return nextVisiblityAt == null || nextVisiblityAt.isBeforeNow();
     }
 
+    public boolean isTombstone() { return getIndex().equals(Tombstone.index); }
+
+    @JsonIgnore
     public boolean isNotAcked() {
         return !isAcked;
     }
 
+    @JsonIgnore
     public boolean isNotVisible() {
         return !isVisible();
     }
+
+    @JsonIgnore
+    public boolean isNotTombstone() { return !isTombstone(); }
 
     public PopReceipt getPopReceipt() {
         return PopReceipt.from(this);

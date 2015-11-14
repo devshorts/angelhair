@@ -95,7 +95,7 @@ public class QueueDebugResource extends BaseQueueResource {
 
         final List<Message> messages = getMessageRepoFactory()
                 .forQueue(queueDefinition.get())
-                .getMessages(ReaderBucketPointer.valueOf(bucketPointer));
+                .getBucketContents(ReaderBucketPointer.valueOf(bucketPointer));
 
         return Response.ok(messages)
                        .status(Response.Status.OK)
@@ -123,7 +123,7 @@ public class QueueDebugResource extends BaseQueueResource {
         final List<Message> messages =
                 getMessageRepoFactory()
                         .forQueue(queueDefinition.get())
-                        .getMessages(dataContext.getPointerRepository().getReaderCurrentBucket());
+                        .getBucketContents(dataContext.getPointerRepository().getReaderCurrentBucket());
 
         return Response.ok(messages)
                        .status(Response.Status.OK)
@@ -150,7 +150,7 @@ public class QueueDebugResource extends BaseQueueResource {
         final List<Message> messages =
                 getMessageRepoFactory()
                         .forQueue(queueDefinition.get())
-                        .getMessages(ReaderBucketPointer.valueOf(bucketPointer))
+                        .getBucketContents(ReaderBucketPointer.valueOf(bucketPointer))
                         .stream()
                         .filter(Message::isNotAcked)
                         .collect(toList());
@@ -181,7 +181,7 @@ public class QueueDebugResource extends BaseQueueResource {
         final List<Message> messages =
                 getMessageRepoFactory()
                         .forQueue(queueDefinition.get())
-                        .getMessages(dataContext.getPointerRepository().getReaderCurrentBucket())
+                        .getBucketContents(dataContext.getPointerRepository().getReaderCurrentBucket())
                         .stream()
                         .filter(Message::isNotAcked)
                         .collect(toList());

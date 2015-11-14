@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.godaddy.logging.LoggerFactory.getLogger;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Invis pointer algo:
@@ -171,7 +172,8 @@ public class ReaderImpl implements Reader {
         // check all the messages in the bucket the invis pointer is currently on
         final ReaderBucketPointer bucketPointer = pointer.toBucketPointer(config.getBucketSize());
 
-        final List<Message> messages = dataContext.getMessageRepository().getMessages(bucketPointer);
+        final List<Message> messages = dataContext.getMessageRepository()
+                                                  .getMessages(bucketPointer);
 
         if (messages.isEmpty()) {
             // no messages, can't move pointer since nothing to move to

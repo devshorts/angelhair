@@ -82,7 +82,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                                 .onlyIf(eq(Tables.Message.VERSION, message.getVersion()))
                                                 .and(eq(Tables.Message.ACKED, false));
 
-        if(session.execute(statement).wasApplied()){
+        if (session.execute(statement).wasApplied()) {
             return Optional.of(message.withNewVersion(newVersion));
         }
 
@@ -120,6 +120,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                           .value(Tables.Message.BUCKET_NUM, bucketPointer.get())
                                           .value(Tables.Message.ACKED, true)
                                           .value(Tables.Message.MONOTON, Tombstone.index.get())
+                                          .value(Tables.Message.NEXT_VISIBLE_ON, now.toDate())
                                           .value(Tables.Message.CREATED_DATE, now.toDate());
 
         session.execute(statement);
@@ -134,7 +135,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
     }
 
     @Override
-    public List<Message> getMessages(final BucketPointer bucketPointer) {
+    public List<Message> getBucketContents(final BucketPointer bucketPointer) {
         // list all messages in bucket
         Statement query = getReadMessageQuery(bucketPointer);
 
@@ -142,7 +143,6 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                       .all()
                       .stream()
                       .map(Message::fromRow)
-                      .filter(m -> m.getIndex().get() >= 0)
                       .collect(toList());
     }
 
