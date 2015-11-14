@@ -7,6 +7,7 @@ import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.factories.RepairWorkerFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
+import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
@@ -37,13 +38,13 @@ public class RepairTests extends TestBase {
 
         final QueueName queueName = QueueName.valueOf("repairer_republishes_newly_visible_in_tombstoned_bucket");
 
-        setupQueue(queueName);
+        final QueueDefinition queueDefinition = setupQueue(queueName);
 
-        repairWorkerFactory.forQueue(queueName);
+        repairWorkerFactory.forQueue(queueDefinition);
 
         final DataContextFactory contextFactory = defaultInjector.getInstance(DataContextFactory.class);
 
-        final DataContext dataContext = contextFactory.forQueue(queueName);
+        final DataContext dataContext = contextFactory.forQueue(queueDefinition);
 
         final MonotonicIndex index = MonotonicIndex.valueOf(0);
 
@@ -52,7 +53,7 @@ public class RepairTests extends TestBase {
                                        .index(index)
                                        .build();
 
-        final RepairWorker repairWorker = repairWorkerFactory.forQueue(queueName);
+        final RepairWorker repairWorker = repairWorkerFactory.forQueue(queueDefinition);
 
         repairWorker.start();
 
@@ -91,13 +92,13 @@ public class RepairTests extends TestBase {
 
         final QueueName queueName = QueueName.valueOf("repairer_moves_off_ghost_messages");
 
-        setupQueue(queueName);
+        final QueueDefinition queueDefinition = setupQueue(queueName);
 
-        repairWorkerFactory.forQueue(queueName);
+        repairWorkerFactory.forQueue(queueDefinition);
 
         final DataContextFactory contextFactory = defaultInjector.getInstance(DataContextFactory.class);
 
-        final DataContext dataContext = contextFactory.forQueue(queueName);
+        final DataContext dataContext = contextFactory.forQueue(queueDefinition);
 
         MonotonicIndex index = dataContext.getMonotonicRepository().nextMonotonic();
 
@@ -106,7 +107,7 @@ public class RepairTests extends TestBase {
                                  .index(index)
                                  .build();
 
-        final RepairWorker repairWorker = repairWorkerFactory.forQueue(queueName);
+        final RepairWorker repairWorker = repairWorkerFactory.forQueue(queueDefinition);
 
         RepairBucketPointer repairCurrentBucketPointer = dataContext.getPointerRepository().getRepairCurrentBucketPointer();
 

@@ -6,6 +6,7 @@ import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
+import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
 import com.godaddy.domains.cassandraqueue.modules.annotations.RepairPool;
 import com.godaddy.logging.Logger;
@@ -45,12 +46,12 @@ public class RepairWorkerImpl implements RepairWorker {
             ServiceConfiguration configuration,
             DataContextFactory factory,
             @RepairPool ScheduledExecutorService executorService,
-            @Assisted QueueName queueName) {
+            @Assisted QueueDefinition definition) {
         scheduledExecutorService = executorService;
         this.configuration = configuration.getBucketConfiguration();
-        dataContext = factory.forQueue(queueName);
+        dataContext = factory.forQueue(definition);
 
-        logger = logger.with(queueName);
+        logger = logger.with(definition.getQueueName());
     }
 
     @Override public void start() {
@@ -176,7 +177,7 @@ public class RepairWorkerImpl implements RepairWorker {
         try {
             final MonotonicIndex nextIndex = dataContext.getMonotonicRepository().nextMonotonic();
 
-            dataContext.getMessageRepository().putMessage(message.withNewId(nextIndex));
+            dataContext.getMessageRepository().putMessage(message.createNewWithIndex(nextIndex));
 
             dataContext.getMessageRepository().ackMessage(message);
 

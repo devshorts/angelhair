@@ -5,6 +5,7 @@ import com.datastax.driver.core.Session;
 import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
 import com.godaddy.domains.cassandraqueue.configurations.LogMapping;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
+import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import com.godaddy.domains.cassandraqueue.modules.Modules;
 import com.godaddy.domains.cassandraqueue.unittests.modules.InMemorySessionProvider;
@@ -71,12 +72,26 @@ public class TestBase {
         return getDefaultInjector(new ServiceConfiguration());
     }
 
-    protected void setupQueue(QueueName queueName, Injector injector) {
-        final QueueRepository queueRepository = injector.getInstance(QueueRepository.class);
-        queueRepository.createQueue(queueName);
+    protected QueueDefinition setupQueue(QueueName queueName) {
+        return setupQueue(queueName, getDefaultInjector());
     }
 
-    protected void setupQueue(QueueName queueName) {
-        setupQueue(queueName, getDefaultInjector());
+    protected QueueDefinition setupQueue(QueueName queueName, Injector injector) {
+        final QueueDefinition queueDefinition = QueueDefinition.builder().queueName(queueName).build();
+
+        createQueue(queueDefinition, injector);
+        return queueDefinition;
+    }
+
+    private void createQueue(final QueueDefinition queueDefinition, final Injector injector) {
+        final QueueRepository queueRepository = injector.getInstance(QueueRepository.class);
+
+        queueRepository.createQueue(queueDefinition);
+
+        queueRepository.getQueue(queueDefinition.getQueueName()).get();
+    }
+
+    protected void createQueue(final QueueDefinition queueDefinition) {
+        createQueue(queueDefinition, getDefaultInjector());
     }
 }

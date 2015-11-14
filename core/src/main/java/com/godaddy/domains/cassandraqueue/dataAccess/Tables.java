@@ -17,6 +17,8 @@ public final class Tables {
     public static class Queue {
         public static final String TABLE_NAME = "queue";
         public static final String QUEUENAME = "queuename";
+        public static final String MAX_DEQUEUE_COUNT = "max_dequeue_count";
+        public static final String BUCKET_SIZE = "bucket_size";
     }
 
     public static class Message {

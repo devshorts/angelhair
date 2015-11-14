@@ -2,11 +2,13 @@ package com.godaddy.domains.cassandraqueue.workers;
 
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
+import com.godaddy.domains.cassandraqueue.model.BucketPointer;
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MessagePointer;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
+import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
 import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.logging.Logger;
 import com.goddady.cassandra.queue.api.client.QueueName;
@@ -88,14 +90,16 @@ public class ReaderImpl implements Reader {
 
     private final DataContext dataContext;
     private final BucketConfiguration config;
+    private final QueueDefinition queueDefinition;
 
     @Inject
     public ReaderImpl(
             DataContextFactory dataContextFactory,
             BucketConfiguration config,
-            @Assisted QueueName queueName) {
+            @Assisted QueueDefinition queueDefinition) {
         this.config = config;
-        dataContext = dataContextFactory.forQueue(queueName);
+        this.queueDefinition = queueDefinition;
+        dataContext = dataContextFactory.forQueue(queueDefinition);
     }
 
     @Override
@@ -241,7 +245,7 @@ public class ReaderImpl implements Reader {
             // someone else did it, fuck it, try again for the next visibleMessage
             logger.with(visibleMessage).warn("Someone else consumed the visibleMessage!");
 
-            return getAndMark(currentBucket, invisiblity);
+//            return getAndMark(currentBucket, invisiblity);
         }
 
         return consumedMessage;
@@ -253,7 +257,7 @@ public class ReaderImpl implements Reader {
     }
 
     private boolean monotonPastBucket(final ReaderBucketPointer currentBucket) {
-        final ReaderBucketPointer currentMonotonicBucket = getLatestMonotonic().toBucketPointer(config.getBucketSize());
+        final BucketPointer currentMonotonicBucket = getLatestMonotonic().toBucketPointer(queueDefinition.getBucketSize());
 
         return currentMonotonicBucket.get() > currentBucket.get();
     }

@@ -10,9 +10,8 @@ import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepositor
 import com.godaddy.domains.cassandraqueue.model.BucketPointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MessagePointer;
-import com.goddady.cassandra.queue.api.client.QueueName;
+import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
 import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
-import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import org.joda.time.DateTime;
@@ -28,24 +27,24 @@ import static java.util.stream.Collectors.toList;
 
 public class MessageRepositoryImpl extends RepositoryBase implements MessageRepository {
     private final Session session;
-    private final QueueName queueName;
-    private final BucketConfiguration bucketConfiguration;
+    private final QueueDefinition queueDefinition;
 
     @Inject
-    public MessageRepositoryImpl(Session session, @Assisted QueueName queueName, BucketConfiguration bucketConfiguration) {
+    public MessageRepositoryImpl(
+            Session session,
+            @Assisted QueueDefinition queueDefinition) {
         this.session = session;
-        this.queueName = queueName;
-        this.bucketConfiguration = bucketConfiguration;
+        this.queueDefinition = queueDefinition;
     }
 
     @Override
     public void putMessage(final Message message, final Duration initialInvisibility) throws ExistingMonotonFoundException {
         final DateTime now = DateTime.now(DateTimeZone.UTC);
-        final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
+        final Long bucketPointer = message.getIndex().toBucketPointer(queueDefinition.getBucketSize()).get();
 
         Statement statement = QueryBuilder.insertInto(Tables.Message.TABLE_NAME)
                                           .ifNotExists()
-                                          .value(Tables.Message.QUEUENAME, queueName.get())
+                                          .value(Tables.Message.QUEUENAME, queueDefinition.getQueueName().get())
                                           .value(Tables.Message.BUCKET_NUM, bucketPointer)
                                           .value(Tables.Message.MONOTON, message.getIndex().get())
                                           .value(Tables.Message.VERSION, 1)
@@ -64,7 +63,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
 
     public Optional<Message> consumeMessage(final Message message, final Duration duration) {
 
-        final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
+        final Long bucketPointer = message.getIndex().toBucketPointer(queueDefinition.getBucketSize()).get();
 
         /*
             Three invariants when consuming: invis time, version, and delivery count are always bumped atomically
@@ -77,7 +76,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
                                                 .with(set(Tables.Message.NEXT_VISIBLE_ON, newInvisTime.toDate()))
                                                 .and(set(Tables.Message.VERSION, newVersion))
                                                 .and(set(Tables.Message.DELIVERY_COUNT, deliveryCount))
-                                                .where(eq(Tables.Message.QUEUENAME, queueName.get()))
+                                                .where(eq(Tables.Message.QUEUENAME, queueDefinition.getQueueName().get()))
                                                 .and(eq(Tables.Message.BUCKET_NUM, bucketPointer))
                                                 .and(eq(Tables.Message.MONOTON, message.getIndex().get()))
                                                 .onlyIf(eq(Tables.Message.VERSION, message.getVersion()))
@@ -95,12 +94,12 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         // conditionally ack if message version is the same as in the message
         //  if was able to update then return true, otehrwise false
 
-        final Long bucketPointer = message.getIndex().toBucketPointer(bucketConfiguration.getBucketSize()).get();
+        final Long bucketPointer = message.getIndex().toBucketPointer(queueDefinition.getBucketSize()).get();
 
         Statement statement = QueryBuilder.update(Tables.Message.TABLE_NAME)
                                           .with(set(Tables.Message.ACKED, true))
                                           .and(set(Tables.Message.VERSION, message.getVersion() + 1))
-                                          .where(eq(Tables.Message.QUEUENAME, queueName.get()))
+                                          .where(eq(Tables.Message.QUEUENAME, queueDefinition.getQueueName().get()))
                                           .and(eq(Tables.Message.BUCKET_NUM, bucketPointer))
                                           .and(eq(Tables.Message.MONOTON, message.getIndex().get()))
                                           .onlyIf(eq(Tables.Message.VERSION, message.getVersion()));
@@ -117,7 +116,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         final DateTime now = DateTime.now(DateTimeZone.UTC);
         Statement statement = QueryBuilder.insertInto(Tables.Message.TABLE_NAME)
                                           .ifNotExists()
-                                          .value(Tables.Message.QUEUENAME, queueName.get())
+                                          .value(Tables.Message.QUEUENAME, queueDefinition.getQueueName().get())
                                           .value(Tables.Message.BUCKET_NUM, bucketPointer.get())
                                           .value(Tables.Message.ACKED, true)
                                           .value(Tables.Message.MONOTON, Tombstone.index.get())
@@ -130,7 +129,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         return QueryBuilder.select()
                            .all()
                            .from(Tables.Message.TABLE_NAME)
-                           .where(eq(Tables.Message.QUEUENAME, queueName.get()))
+                           .where(eq(Tables.Message.QUEUENAME, queueDefinition.getQueueName().get()))
                            .and(eq(Tables.Message.BUCKET_NUM, bucketPointer.get()));
     }
 
@@ -156,7 +155,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
 
     @Override
     public Message getMessage(final MessagePointer pointer) {
-        final BucketPointer bucketPointer = pointer.toBucketPointer(bucketConfiguration.getBucketSize());
+        final BucketPointer bucketPointer = ReaderBucketPointer.valueOf(pointer.get() / queueDefinition.getBucketSize());
 
         Statement query = getReadMessageQuery(bucketPointer).and(eq(Tables.Message.MONOTON, pointer.get()));
 

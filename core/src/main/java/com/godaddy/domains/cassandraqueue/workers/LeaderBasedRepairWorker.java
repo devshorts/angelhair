@@ -3,10 +3,9 @@ package com.godaddy.domains.cassandraqueue.workers;
 import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
 import com.godaddy.domains.cassandraqueue.factories.RepairWorkerFactory;
-import com.goddady.cassandra.queue.api.client.QueueName;
+import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
 import com.godaddy.logging.Logger;
 import com.google.inject.Inject;
-
 import org.jgroups.JChannel;
 import org.jgroups.protocols.raft.RAFT;
 import org.jgroups.protocols.raft.Role;
@@ -36,14 +35,15 @@ public class LeaderBasedRepairWorker implements RAFT.RoleChange, RepairWorkerMan
     }
 
     protected void startAll() {
-        for (QueueName queueName : queueRepo.getQueues()) {
-            repairWorkerFactory.forQueue(queueName).start();
+        for (QueueDefinition queueDefinition : queueRepo.getQueues()) {
+            repairWorkerFactory.forQueue(queueDefinition).start();
         }
     }
 
     protected void stopAll() {
-        for (QueueName queueName : queueRepo.getQueues()) {
-            repairWorkerFactory.forQueue(queueName).stop();
+        for (QueueDefinition queueDefinition : queueRepo.getQueues()) {
+
+            repairWorkerFactory.forQueue(queueDefinition).stop();
         }
     }
 
@@ -53,19 +53,22 @@ public class LeaderBasedRepairWorker implements RAFT.RoleChange, RepairWorkerMan
 
         if (role == Role.Leader) {
             startAll();
-        } else {
+        }
+        else {
             stopAll();
         }
     }
 
-    @Override public void start() {
+    @Override
+    public void start() {
         raftHandle.addRoleListener(this);
         if (raftHandle.isLeader()) {
             roleChanged(Role.Leader);
         }
     }
 
-    @Override public void stop() {
+    @Override
+    public void stop() {
         raftHandle.removeRoleListener(this);
         if (raftHandle.isLeader()) {
             roleChanged(Role.Follower);
