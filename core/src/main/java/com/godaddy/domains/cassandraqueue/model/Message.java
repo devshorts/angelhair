@@ -2,6 +2,7 @@ package com.godaddy.domains.cassandraqueue.model;
 
 import com.datastax.driver.core.Row;
 import com.godaddy.domains.cassandraqueue.dataAccess.Tables;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import lombok.Builder;
 import lombok.Data;
 import org.joda.time.DateTime;
@@ -14,6 +15,8 @@ public class Message {
     private final String blob;
 
     private DateTime nextVisiblityAt;
+
+    private DateTime createdDate;
 
     private boolean isAcked;
 
@@ -33,7 +36,11 @@ public class Message {
         return !isVisible();
     }
 
-    public Message withNewId(MonotonicIndex index) {
+    public PopReceipt getPopReceipt() {
+        return PopReceipt.from(this);
+    }
+
+    public Message createNewWithIndex(MonotonicIndex index) {
         return Message.builder()
                       .blob(blob)
                       .index(index)
@@ -41,6 +48,7 @@ public class Message {
                       .isAcked(false)
                       .nextVisiblityAt(nextVisiblityAt)
                       .deliveryCount(deliveryCount)
+                      .createdDate(createdDate)
                       .build();
     }
 
@@ -53,6 +61,7 @@ public class Message {
                       .isAcked(isAcked)
                       .nextVisiblityAt(nextVisiblityAt)
                       .deliveryCount(deliveryCount)
+                      .createdDate(createdDate)
                       .build();
     }
 
@@ -65,6 +74,7 @@ public class Message {
                       .version(row.getInt(Tables.Message.VERSION))
                       .deliveryCount(row.getInt(Tables.Message.DELIVERY_COUNT))
                       .nextVisiblityAt(new DateTime(row.getDate(Tables.Message.NEXT_VISIBLE_ON)))
+                      .createdDate(new DateTime(row.getDate(Tables.Message.CREATED_DATE)))
                       .build();
     }
 }
