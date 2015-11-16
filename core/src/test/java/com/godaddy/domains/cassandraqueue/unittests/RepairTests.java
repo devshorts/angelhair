@@ -143,7 +143,7 @@ public class RepairTests extends TestBase {
         final Message thirdmessage = Message.builder().blob("3rd").index(index).build();
 
         dataContext.getMessageRepository().putMessage(thirdmessage);
-        getTestClock().tickSeconds(5L);
+        getTestClock().tickSeconds(50L);
 
         repairWorker.waitForNextRun();
 

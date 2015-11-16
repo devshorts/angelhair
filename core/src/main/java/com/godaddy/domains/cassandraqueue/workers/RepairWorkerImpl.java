@@ -145,7 +145,7 @@ public class RepairWorkerImpl implements RepairWorker {
         if (seconds.isGreaterThan(Seconds.ZERO)) {
             // wait for the repair worker timeout
             try {
-                Thread.sleep(seconds.getSeconds() * 1000);
+                clock.sleepFor(seconds.toStandardDuration());
             }
             catch (InterruptedException e) {
                 // ok
