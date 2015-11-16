@@ -81,11 +81,18 @@ public class TestBase {
     }
 
     protected QueueDefinition setupQueue(QueueName queueName) {
-        return setupQueue(queueName, getDefaultInjector());
+        return setupQueue(queueName, 20, getDefaultInjector());
     }
 
-    protected QueueDefinition setupQueue(QueueName queueName, Injector injector) {
-        final QueueDefinition queueDefinition = QueueDefinition.builder().queueName(queueName).build();
+    protected QueueDefinition setupQueue(QueueName queueName, Integer bucketSize) {
+        return setupQueue(queueName, bucketSize, getDefaultInjector());
+    }
+
+    protected QueueDefinition setupQueue(QueueName queueName, Integer bucketSize, Injector injector) {
+        final QueueDefinition queueDefinition = QueueDefinition.builder()
+                                                               .queueName(queueName)
+                                                               .bucketSize(bucketSize)
+                                                               .build();
 
         createQueue(queueDefinition, injector);
         return queueDefinition;

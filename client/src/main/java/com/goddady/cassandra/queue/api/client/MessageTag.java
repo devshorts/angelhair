@@ -31,11 +31,17 @@ public final class MessageTag extends StringValue {
         super(value);
     }
 
-    public static MessageTag valueOf(@NonNull String value) {
+    public static MessageTag valueOf(String value) {
+        if (value == null) {
+            return null;
+        }
         return new MessageTag(StringUtils.trimToEmpty(value));
     }
 
-    public static MessageTag valueOf(@NonNull StringValue value) {
+    public static MessageTag valueOf(StringValue value) {
+        if (value == null) {
+            return null;
+        }
         return MessageTag.valueOf(value.get());
     }
 

@@ -17,10 +17,13 @@ import com.google.inject.assistedinject.Assisted;
 import lombok.Data;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Instant;
 import org.joda.time.Seconds;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -42,6 +45,8 @@ public class RepairWorkerImpl implements RepairWorker {
     private final DataContext dataContext;
 
     private volatile boolean isStarted;
+
+    private final CompletableFuture<Boolean> runOnce = new CompletableFuture<>();
 
     @Inject
     public RepairWorkerImpl(
@@ -72,6 +77,10 @@ public class RepairWorkerImpl implements RepairWorker {
         scheduledExecutorService.shutdown();
     }
 
+    public Boolean waitForRunOnce() throws ExecutionException, InterruptedException {
+        return runOnce.get();
+    }
+
     private void schedule() {
         scheduledExecutorService.schedule(this::process,
                                           configuration.getRepairWorkerPollFrequency().getMillis(), TimeUnit.MILLISECONDS);
@@ -83,6 +92,7 @@ public class RepairWorkerImpl implements RepairWorker {
 
             if (firstBucketToMonitor.isPresent()) {
                 watchBucket(firstBucketToMonitor.get());
+                runOnce.complete(true);
             }
         }
         catch (Throwable ex) {
@@ -116,7 +126,7 @@ public class RepairWorkerImpl implements RepairWorker {
 
         final DateTime plus = tombstoneTime.plus(configuration.getRepairWorkerTimeout());
 
-        final DateTime now = DateTime.now(DateTimeZone.UTC);
+        final Instant now = clock.now();
 
         final Seconds seconds = Seconds.secondsBetween(now, plus);
 

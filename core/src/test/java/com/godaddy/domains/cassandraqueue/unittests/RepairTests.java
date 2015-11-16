@@ -8,6 +8,8 @@ import com.godaddy.domains.cassandraqueue.factories.RepairWorkerFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
+import com.godaddy.domains.cassandraqueue.workers.RepairWorkerImpl;
+import com.goddady.cassandra.queue.api.client.MessageTag;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
@@ -17,17 +19,18 @@ import com.google.inject.Injector;
 import org.joda.time.Duration;
 import org.junit.Test;
 
+import java.util.concurrent.ExecutionException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepairTests extends TestBase {
     @Test
-    public void repairer_republishes_newly_visible_in_tombstoned_bucket() throws InterruptedException, ExistingMonotonFoundException {
+    public void repairer_republishes_newly_visible_in_tombstoned_bucket() throws InterruptedException, ExistingMonotonFoundException, ExecutionException {
 
         final ServiceConfiguration serviceConfiguration = new ServiceConfiguration();
 
         final BucketConfiguration bucketConfiguration = new BucketConfiguration();
 
-        bucketConfiguration.setBucketSize(1);
         bucketConfiguration.setRepairWorkerTimeout(Duration.standardSeconds(3));
 
         serviceConfiguration.setBucketConfiguration(bucketConfiguration);
@@ -38,7 +41,7 @@ public class RepairTests extends TestBase {
 
         final QueueName queueName = QueueName.valueOf("repairer_republishes_newly_visible_in_tombstoned_bucket");
 
-        final QueueDefinition queueDefinition = setupQueue(queueName);
+        final QueueDefinition queueDefinition = setupQueue(queueName, 1);
 
         repairWorkerFactory.forQueue(queueDefinition);
 
@@ -51,9 +54,10 @@ public class RepairTests extends TestBase {
         final Message message = Message.builder()
                                        .blob("BOO!")
                                        .index(index)
+                                       .tag(MessageTag.random())
                                        .build();
 
-        final RepairWorker repairWorker = repairWorkerFactory.forQueue(queueDefinition);
+        final RepairWorkerImpl repairWorker = (RepairWorkerImpl) repairWorkerFactory.forQueue(queueDefinition);
 
         repairWorker.start();
 
@@ -64,6 +68,8 @@ public class RepairTests extends TestBase {
         dataContext.getMessageRepository().tombstone(ReaderBucketPointer.valueOf(0));
 
         getTestClock().tickSeconds(5L);
+
+        repairWorker.waitForRunOnce();
 
         final Message repairedMessage = dataContext.getMessageRepository().getMessage(index);
 
