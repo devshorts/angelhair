@@ -11,6 +11,8 @@ import org.joda.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.stream.Collectors.toList;
+
 public interface MessageRepository {
     void putMessage(final Message message, final Duration initialInvisibility) throws ExistingMonotonFoundException;
 
@@ -22,7 +24,11 @@ public interface MessageRepository {
 
     boolean ackMessage(final Message message);
 
-    List<Message> getMessages(final BucketPointer bucketPointer);
+    default List<Message> getMessages(final BucketPointer bucketPointer){
+        return getBucketContents(bucketPointer).stream().filter(Message::isNotTombstone).collect(toList());
+    }
+
+    List<Message> getBucketContents(final BucketPointer bucketPointer);
 
     void tombstone(final ReaderBucketPointer bucketPointer);
 

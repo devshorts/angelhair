@@ -7,10 +7,12 @@ import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
 import com.godaddy.domains.cassandraqueue.model.PointerType;
+import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Inject;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.*;
 import static java.util.stream.Collectors.toList;
@@ -25,18 +27,21 @@ public class QueueRepositoryImpl extends RepositoryBase implements QueueReposito
     private final Session session;
 
     @Override
-    public void createQueue(final QueueName queueName) {
-        initializeMonotonicValue(queueName);
+    public void createQueue(final QueueDefinition definition) {
 
-        initializePointers(queueName);
+        initializeMonotonicValue(definition.getQueueName());
 
-        insertQueueRecord(queueName);
+        initializePointers(definition.getQueueName());
+
+        insertQueueRecord(definition);
     }
 
-    private void insertQueueRecord(final QueueName queueName) {
+    private void insertQueueRecord(final QueueDefinition queueDefinition) {
         final Insert insertQueue = QueryBuilder.insertInto(Tables.Queue.TABLE_NAME)
                                                .ifNotExists()
-                                               .value(Tables.Queue.QUEUENAME, queueName.get());
+                                               .value(Tables.Queue.QUEUENAME, queueDefinition.getQueueName().get())
+                                               .value(Tables.Queue.BUCKET_SIZE, queueDefinition.getBucketSize())
+                                               .value(Tables.Queue.MAX_DEQUEUE_COUNT, queueDefinition.getMaxDeliveryCount());
 
         session.execute(insertQueue);
     }
@@ -76,13 +81,22 @@ public class QueueRepositoryImpl extends RepositoryBase implements QueueReposito
     }
 
     @Override
-    public List<QueueName> getQueues() {
+    public Optional<QueueDefinition> getQueue(final QueueName queueName) {
+        final Select.Where queryOne =
+                QueryBuilder.select().all().from(Tables.Queue.TABLE_NAME).where(eq(Tables.Queue.QUEUENAME, queueName.get()));
+
+        final QueueDefinition result = getOne(session.execute(queryOne), QueueDefinition::fromRow);
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public List<QueueDefinition> getQueues() {
         final Select query = QueryBuilder.select().all().from(Tables.Queue.TABLE_NAME);
 
         return session.execute(query)
                       .all()
                       .stream()
-                      .map(row -> QueueName.valueOf(row.getString(Tables.Queue.QUEUENAME))).collect(toList());
+                      .map(QueueDefinition::fromRow).collect(toList());
 
     }
 }

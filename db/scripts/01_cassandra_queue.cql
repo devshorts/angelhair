@@ -1,5 +1,7 @@
 CREATE TABLE queue (
-  queuename text PRIMARY KEY
+  queuename text PRIMARY KEY,
+  bucket_size int,
+  max_dequeue_count int
 );
 
 CREATE TABLE pointer (
@@ -25,6 +27,7 @@ CREATE TABLE message (
   next_visible_on timestamp,
   created_date timestamp,
   delivery_count int,
+  tag text,
 
   PRIMARY KEY ((queuename, bucket_num), monoton)
 );

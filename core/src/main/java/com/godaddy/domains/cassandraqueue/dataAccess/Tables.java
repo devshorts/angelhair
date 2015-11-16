@@ -17,6 +17,8 @@ public final class Tables {
     public static class Queue {
         public static final String TABLE_NAME = "queue";
         public static final String QUEUENAME = "queuename";
+        public static final String MAX_DEQUEUE_COUNT = "max_dequeue_count";
+        public static final String BUCKET_SIZE = "bucket_size";
     }
 
     public static class Message {
@@ -31,5 +33,6 @@ public final class Tables {
         public static final String ACKED = "acked";
         public static final String NEXT_VISIBLE_ON = "next_visible_on";
         public static final String CREATED_DATE = "created_date";
+        public static final String TAG = "tag";
     }
 }

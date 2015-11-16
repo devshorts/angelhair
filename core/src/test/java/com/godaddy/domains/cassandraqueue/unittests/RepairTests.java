@@ -7,26 +7,29 @@ import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.factories.RepairWorkerFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
+import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
+import com.godaddy.domains.cassandraqueue.workers.RepairWorkerImpl;
+import com.goddady.cassandra.queue.api.client.MessageTag;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
 import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
-import com.godaddy.domains.cassandraqueue.workers.RepairWorker;
 import com.google.inject.Injector;
 import org.joda.time.Duration;
 import org.junit.Test;
+
+import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RepairTests extends TestBase {
     @Test
-    public void repairer_republishes_newly_visible_in_tombstoned_bucket() throws InterruptedException, ExistingMonotonFoundException {
+    public void repairer_republishes_newly_visible_in_tombstoned_bucket() throws InterruptedException, ExistingMonotonFoundException, ExecutionException {
 
         final ServiceConfiguration serviceConfiguration = new ServiceConfiguration();
 
         final BucketConfiguration bucketConfiguration = new BucketConfiguration();
 
-        bucketConfiguration.setBucketSize(1);
         bucketConfiguration.setRepairWorkerTimeout(Duration.standardSeconds(3));
 
         serviceConfiguration.setBucketConfiguration(bucketConfiguration);
@@ -37,30 +40,35 @@ public class RepairTests extends TestBase {
 
         final QueueName queueName = QueueName.valueOf("repairer_republishes_newly_visible_in_tombstoned_bucket");
 
-        setupQueue(queueName);
+        final QueueDefinition queueDefinition = setupQueue(queueName, 1);
 
-        repairWorkerFactory.forQueue(queueName);
+        repairWorkerFactory.forQueue(queueDefinition);
 
         final DataContextFactory contextFactory = defaultInjector.getInstance(DataContextFactory.class);
 
-        final DataContext dataContext = contextFactory.forQueue(queueName);
+        final DataContext dataContext = contextFactory.forQueue(queueDefinition);
 
         final MonotonicIndex index = MonotonicIndex.valueOf(0);
 
         final Message message = Message.builder()
                                        .blob("BOO!")
                                        .index(index)
+                                       .tag(MessageTag.random())
                                        .build();
 
-        final RepairWorker repairWorker = repairWorkerFactory.forQueue(queueName);
+        final RepairWorkerImpl repairWorker = (RepairWorkerImpl) repairWorkerFactory.forQueue(queueDefinition);
 
         repairWorker.start();
 
         dataContext.getMessageRepository().putMessage(message);
 
+        getTestClock().tick();
+
         dataContext.getMessageRepository().tombstone(ReaderBucketPointer.valueOf(0));
 
-        Thread.sleep(5000);
+        getTestClock().tickSeconds(5L);
+
+        repairWorker.waitForNextRun();
 
         final Message repairedMessage = dataContext.getMessageRepository().getMessage(index);
 
@@ -80,7 +88,6 @@ public class RepairTests extends TestBase {
 
         final BucketConfiguration bucketConfiguration = new BucketConfiguration();
 
-        bucketConfiguration.setBucketSize(2);
         bucketConfiguration.setRepairWorkerTimeout(Duration.standardSeconds(10));
 
         serviceConfiguration.setBucketConfiguration(bucketConfiguration);
@@ -91,13 +98,13 @@ public class RepairTests extends TestBase {
 
         final QueueName queueName = QueueName.valueOf("repairer_moves_off_ghost_messages");
 
-        setupQueue(queueName);
+        final QueueDefinition queueDefinition = setupQueue(queueName, 2);
 
-        repairWorkerFactory.forQueue(queueName);
+        repairWorkerFactory.forQueue(queueDefinition);
 
         final DataContextFactory contextFactory = defaultInjector.getInstance(DataContextFactory.class);
 
-        final DataContext dataContext = contextFactory.forQueue(queueName);
+        final DataContext dataContext = contextFactory.forQueue(queueDefinition);
 
         MonotonicIndex index = dataContext.getMonotonicRepository().nextMonotonic();
 
@@ -106,13 +113,15 @@ public class RepairTests extends TestBase {
                                  .index(index)
                                  .build();
 
-        final RepairWorker repairWorker = repairWorkerFactory.forQueue(queueName);
+        final RepairWorkerImpl repairWorker = (RepairWorkerImpl)repairWorkerFactory.forQueue(queueDefinition);
 
         RepairBucketPointer repairCurrentBucketPointer = dataContext.getPointerRepository().getRepairCurrentBucketPointer();
 
         assertThat(repairCurrentBucketPointer.get()).isEqualTo(0);
 
         dataContext.getMessageRepository().putMessage(message);
+
+        getTestClock().tick();
 
         message = dataContext.getMessageRepository().getMessage(index);
 
@@ -122,6 +131,8 @@ public class RepairTests extends TestBase {
 
         // the ghost message
         dataContext.getMonotonicRepository().nextMonotonic();
+        getTestClock().tick();
+
 
         // tombstone the old bucket
         dataContext.getMessageRepository().tombstone(ReaderBucketPointer.valueOf(0));
@@ -131,8 +142,9 @@ public class RepairTests extends TestBase {
         final Message thirdmessage = Message.builder().blob("3rd").index(index).build();
 
         dataContext.getMessageRepository().putMessage(thirdmessage);
+        getTestClock().tickSeconds(50L);
 
-        Thread.sleep(15000);
+        repairWorker.waitForNextRun();
 
         // assert that the repair pointer moved
         repairCurrentBucketPointer = dataContext.getPointerRepository().getRepairCurrentBucketPointer();

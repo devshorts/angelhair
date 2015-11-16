@@ -54,7 +54,7 @@ public class MonotonicRepoImpl extends RepositoryBase implements MonotonicReposi
                                      .onlyIf(eq(Tables.Monoton.VALUE, current));
 
         if(session.execute(stat).wasApplied()) {
-            return MonotonicIndex.valueOf(next);
+            return MonotonicIndex.valueOf(current);
         }
 
         return null;

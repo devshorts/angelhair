@@ -4,27 +4,32 @@ import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
+import com.godaddy.domains.cassandraqueue.model.Clock;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
+import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
 import com.godaddy.domains.cassandraqueue.modules.annotations.RepairPool;
 import com.godaddy.logging.Logger;
-import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import lombok.Data;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Instant;
 import org.joda.time.Seconds;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.godaddy.logging.LoggerFactory.getLogger;
 
-@Data class RepairContext {
+@Data
+class RepairContext {
     private final RepairBucketPointer pointer;
 
     private final DateTime tombstonedAt;
@@ -32,7 +37,9 @@ import static com.godaddy.logging.LoggerFactory.getLogger;
 
 public class RepairWorkerImpl implements RepairWorker {
     private final BucketConfiguration configuration;
+    private final Clock clock;
     private final ScheduledExecutorService scheduledExecutorService;
+    private final QueueDefinition queueDefinition;
 
     private Logger logger = getLogger(RepairWorkerImpl.class);
 
@@ -40,20 +47,26 @@ public class RepairWorkerImpl implements RepairWorker {
 
     private volatile boolean isStarted;
 
+    private final Object nextRun = new Object();
+
     @Inject
     public RepairWorkerImpl(
             ServiceConfiguration configuration,
             DataContextFactory factory,
+            Clock clock,
             @RepairPool ScheduledExecutorService executorService,
-            @Assisted QueueName queueName) {
+            @Assisted QueueDefinition definition) {
+        this.clock = clock;
         scheduledExecutorService = executorService;
+        queueDefinition = definition;
         this.configuration = configuration.getBucketConfiguration();
-        dataContext = factory.forQueue(queueName);
+        dataContext = factory.forQueue(definition);
 
-        logger = logger.with(queueName);
+        logger = logger.with(definition.getQueueName());
     }
 
-    @Override public void start() {
+    @Override
+    public void start() {
         isStarted = true;
 
         logger.success("Starting repairer");
@@ -61,10 +74,17 @@ public class RepairWorkerImpl implements RepairWorker {
         schedule();
     }
 
-    @Override public void stop() {
+    @Override
+    public void stop() {
         isStarted = false;
 
         scheduledExecutorService.shutdown();
+    }
+
+    public void waitForNextRun() throws InterruptedException {
+        synchronized (nextRun) {
+            nextRun.wait();
+        }
     }
 
     private void schedule() {
@@ -78,6 +98,9 @@ public class RepairWorkerImpl implements RepairWorker {
 
             if (firstBucketToMonitor.isPresent()) {
                 watchBucket(firstBucketToMonitor.get());
+                synchronized (nextRun) {
+                    nextRun.notifyAll();
+                }
             }
         }
         catch (Throwable ex) {
@@ -101,7 +124,7 @@ public class RepairWorkerImpl implements RepairWorker {
 
         final List<Message> messages = dataContext.getMessageRepository().getMessages(pointer.getPointer());
 
-        messages.stream().filter(i -> !i.isAcked() && i.isVisible() && i.getDeliveryCount() == 0)
+        messages.stream().filter(message -> !message.isAcked() && message.isVisible(clock) && message.getDeliveryCount() == 0)
                 .forEach(this::republishMessage);
 
         advance(pointer.getPointer());
@@ -111,7 +134,7 @@ public class RepairWorkerImpl implements RepairWorker {
 
         final DateTime plus = tombstoneTime.plus(configuration.getRepairWorkerTimeout());
 
-        final DateTime now = DateTime.now(DateTimeZone.UTC);
+        final Instant now = clock.now();
 
         final Seconds seconds = Seconds.secondsBetween(now, plus);
 
@@ -123,7 +146,7 @@ public class RepairWorkerImpl implements RepairWorker {
         if (seconds.isGreaterThan(Seconds.ZERO)) {
             // wait for the repair worker timeout
             try {
-                Thread.sleep(seconds.getSeconds() * 1000);
+                clock.sleepFor(seconds.toStandardDuration());
             }
             catch (InterruptedException e) {
                 // ok
@@ -145,7 +168,7 @@ public class RepairWorkerImpl implements RepairWorker {
             if (tombstoneTime.isPresent()) {
                 final List<Message> messages = messageRepository.getMessages(currentBucket);
 
-                if (messages.size() == configuration.getBucketSize() && messages.stream().allMatch(Message::isAcked)) {
+                if (messages.size() == queueDefinition.getBucketSize() && messages.stream().allMatch(Message::isAcked)) {
                     currentBucket = advance(currentBucket);
 
                     logger.with(currentBucket).info("Found full bucket, advancing");
@@ -176,7 +199,7 @@ public class RepairWorkerImpl implements RepairWorker {
         try {
             final MonotonicIndex nextIndex = dataContext.getMonotonicRepository().nextMonotonic();
 
-            dataContext.getMessageRepository().putMessage(message.withNewId(nextIndex));
+            dataContext.getMessageRepository().putMessage(message.createNewWithIndex(nextIndex));
 
             dataContext.getMessageRepository().ackMessage(message);
 

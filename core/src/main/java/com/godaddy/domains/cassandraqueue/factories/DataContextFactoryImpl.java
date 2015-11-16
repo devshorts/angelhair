@@ -1,6 +1,7 @@
 package com.godaddy.domains.cassandraqueue.factories;
 
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.QueueRepository;
+import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -23,11 +24,11 @@ public class DataContextFactoryImpl implements DataContextFactory {
         this.queueRepositoryProvider = queueRepositoryProvider;
     }
 
-    public DataContext forQueue(QueueName queueName) {
+    public DataContext forQueue(QueueDefinition definition) {
         return new DataContext(
-                messageRepoFactory.forQueue(queueName),
-                monotonicRepoFactory.forQueue(queueName),
-                pointerRepoFactory.forQueue(queueName),
+                messageRepoFactory.forQueue(definition),
+                monotonicRepoFactory.forQueue(definition.getQueueName()),
+                pointerRepoFactory.forQueue(definition.getQueueName()),
                 queueRepositoryProvider.get());
     }
 }

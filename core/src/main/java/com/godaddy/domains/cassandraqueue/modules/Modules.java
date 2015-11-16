@@ -12,5 +12,6 @@ public class Modules {
                           new RepairWorkerModule(),
                           new ReaderModule(),
                           new LeadershipModule(),
-                          new ConfigProviderModule());
+                          new ConfigProviderModule(),
+                          new ClockModule());
 }

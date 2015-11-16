@@ -1,6 +1,8 @@
 package com.godaddy.domains.cassandraqueue.unittests.modules;
 
 import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
+import com.godaddy.domains.cassandraqueue.model.Clock;
+import com.godaddy.domains.cassandraqueue.modules.ClockModule;
 import com.godaddy.domains.common.test.guice.OverridableModule;
 import com.google.inject.Module;
 import io.dropwizard.setup.Environment;
@@ -32,3 +34,4 @@ public class MockEnvironmentModule extends OverridableModule {
         bind(ServiceConfiguration.class).toInstance(configInstance);
     }
 }
+

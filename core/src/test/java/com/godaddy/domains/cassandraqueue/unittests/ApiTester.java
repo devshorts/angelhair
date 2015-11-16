@@ -34,6 +34,8 @@ public class ApiTester extends TestBase {
 
         client.addMessage(queueName, "hi").execute();
 
+        getTestClock().tick();
+
         final Response<GetMessageResponse> message = client.getMessage(queueName).execute();
 
         final GetMessageResponse body = message.body();

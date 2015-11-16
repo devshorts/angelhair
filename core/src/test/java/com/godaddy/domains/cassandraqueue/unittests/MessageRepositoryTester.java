@@ -6,6 +6,7 @@ import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
+import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Injector;
 import org.joda.time.DateTime;
@@ -25,9 +26,9 @@ public class MessageRepositoryTester extends TestBase {
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
         final QueueName queueName = QueueName.valueOf("put_message_should_succeed");
 
-        setupQueue(queueName);
+        final QueueDefinition queueDefinition = setupQueue(queueName);
 
-        final DataContext context = factory.forQueue(queueName);
+        final DataContext context = factory.forQueue(queueDefinition);
 
         final MonotonicIndex monoton = context.getMonotonicRepository().nextMonotonic();
 
@@ -49,9 +50,9 @@ public class MessageRepositoryTester extends TestBase {
 
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
         final QueueName queueName = QueueName.valueOf("ack_message_should_succeed");
-        setupQueue(queueName);
+        final QueueDefinition queueDefinition = setupQueue(queueName);
 
-        final DataContext context = factory.forQueue(queueName);
+        final DataContext context = factory.forQueue(queueDefinition);
 
         final MonotonicIndex monoton = context.getMonotonicRepository().nextMonotonic();
 
@@ -82,9 +83,9 @@ public class MessageRepositoryTester extends TestBase {
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
         final QueueName queueName = QueueName.valueOf("ack_message_after_version_changed_should_fail");
 
-        setupQueue(queueName);
+        final QueueDefinition queueDefinition = setupQueue(queueName);
 
-        final DataContext context = factory.forQueue(queueName);
+        final DataContext context = factory.forQueue(queueDefinition);
 
         final MonotonicIndex monoton = context.getMonotonicRepository().nextMonotonic();
 
@@ -119,9 +120,9 @@ public class MessageRepositoryTester extends TestBase {
         final DataContextFactory factory = defaultInjector.getInstance(DataContextFactory.class);
         final QueueName queueName = QueueName.valueOf("an_added_tombstone_should_exist");
 
-        setupQueue(queueName);
+        final QueueDefinition queueDefinition = setupQueue(queueName);
 
-        final DataContext context = factory.forQueue(queueName);
+        final DataContext context = factory.forQueue(queueDefinition);
 
         final MonotonicIndex monoton = context.getMonotonicRepository().nextMonotonic();
 

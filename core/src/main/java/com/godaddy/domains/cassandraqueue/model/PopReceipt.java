@@ -8,9 +8,8 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.goddady.cassandra.queue.api.client.MessageTag;
 import lombok.Data;
-import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple2;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -19,18 +18,18 @@ import java.util.Base64;
 @JsonSerialize(using = PopReceipt.JsonSerializeAdapter.class)
 @JsonDeserialize(using = PopReceipt.JsonDeserializeAdapater.class)
 public final class PopReceipt {
-    private final int messageVersion;
-
     private final MonotonicIndex messageIndex;
 
-    public static PopReceipt valueOf(String string) {
-        final Tuple2<MonotonicIndex, Integer> objects = parsePopReceipt(string);
+    private final int messageVersion;
 
-        return new PopReceipt(objects.v2, objects.v1);
+    private final MessageTag messageTag;
+
+    public static PopReceipt valueOf(String string) {
+        return parsePopReceipt(string);
     }
 
     public static PopReceipt from(Message message) {
-        return new PopReceipt(message.getVersion(), message.getIndex());
+        return new PopReceipt(message.getIndex(), message.getVersion(), message.getTag());
     }
 
     @Override
@@ -39,19 +38,23 @@ public final class PopReceipt {
     }
 
     private String getPopReceipt() {
-        final String receiptString = String.format("%s:%s", getMessageIndex(), getMessageVersion());
+        final String receiptString = String.format("%s:%s:%s", getMessageIndex(), getMessageVersion(), getMessageTag());
 
         return Base64.getEncoder().withoutPadding().encodeToString(receiptString.getBytes());
     }
 
-    private static Tuple2<MonotonicIndex, Integer> parsePopReceipt(String popReceipt) {
+    private static PopReceipt parsePopReceipt(String popReceipt) {
         final byte[] rawReceipt = Base64.getDecoder().decode(popReceipt);
 
         final String receipt = new String(rawReceipt);
 
         final String[] components = receipt.split(":");
 
-        return Tuple.tuple(MonotonicIndex.valueOf(Long.parseLong(components[0])), Integer.parseInt(components[1]));
+        final MonotonicIndex monotonicIndex = MonotonicIndex.valueOf(Long.parseLong(components[0]));
+        final Integer messageVersion = Integer.parseInt(components[1]);
+        final MessageTag messageTag = MessageTag.valueOf(components[2]);
+
+        return new PopReceipt(monotonicIndex, messageVersion, messageTag);
     }
 
 

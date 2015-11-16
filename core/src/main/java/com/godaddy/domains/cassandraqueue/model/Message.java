@@ -1,10 +1,14 @@
 package com.godaddy.domains.cassandraqueue.model;
 
 import com.datastax.driver.core.Row;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.godaddy.domains.cassandraqueue.dataAccess.Tables;
+import com.godaddy.domains.cassandraqueue.dataAccess.Tombstone;
+import com.goddady.cassandra.queue.api.client.MessageTag;
 import lombok.Builder;
 import lombok.Data;
 import org.joda.time.DateTime;
+import org.joda.time.Instant;
 
 @Data
 @Builder
@@ -15,25 +19,40 @@ public class Message {
 
     private DateTime nextVisiblityAt;
 
+    private DateTime createdDate;
+
     private boolean isAcked;
 
     private int version = 0;
 
     private int deliveryCount = 0;
 
-    public boolean isVisible() {
-        return nextVisiblityAt == null || nextVisiblityAt.isBeforeNow();
+    private MessageTag tag;
+
+    public boolean isVisible(Clock clock) {
+        return nextVisiblityAt == null || nextVisiblityAt.isBefore(clock.now());
     }
 
+    public boolean isTombstone() { return getIndex().equals(Tombstone.index); }
+
+    @JsonIgnore
     public boolean isNotAcked() {
         return !isAcked;
     }
 
-    public boolean isNotVisible() {
-        return !isVisible();
+    @JsonIgnore
+    public boolean isNotVisible(Clock clock) {
+        return !isVisible(clock);
     }
 
-    public Message withNewId(MonotonicIndex index) {
+    @JsonIgnore
+    public boolean isNotTombstone() { return !isTombstone(); }
+
+    public PopReceipt getPopReceipt() {
+        return PopReceipt.from(this);
+    }
+
+    public Message createNewWithIndex(MonotonicIndex index) {
         return Message.builder()
                       .blob(blob)
                       .index(index)
@@ -41,6 +60,8 @@ public class Message {
                       .isAcked(false)
                       .nextVisiblityAt(nextVisiblityAt)
                       .deliveryCount(deliveryCount)
+                      .createdDate(createdDate)
+                      .tag(tag)
                       .build();
     }
 
@@ -53,6 +74,8 @@ public class Message {
                       .isAcked(isAcked)
                       .nextVisiblityAt(nextVisiblityAt)
                       .deliveryCount(deliveryCount)
+                      .createdDate(createdDate)
+                      .tag(tag)
                       .build();
     }
 
@@ -65,6 +88,8 @@ public class Message {
                       .version(row.getInt(Tables.Message.VERSION))
                       .deliveryCount(row.getInt(Tables.Message.DELIVERY_COUNT))
                       .nextVisiblityAt(new DateTime(row.getDate(Tables.Message.NEXT_VISIBLE_ON)))
+                      .createdDate(new DateTime(row.getDate(Tables.Message.CREATED_DATE)))
+                      .tag(MessageTag.valueOf(row.getString(Tables.Message.TAG)))
                       .build();
     }
 }

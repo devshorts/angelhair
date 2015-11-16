@@ -1,8 +1,11 @@
 package com.godaddy.domains.cassandraqueue;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.godaddy.domains.cassandraqueue.configurations.LogMapping;
 import com.godaddy.domains.cassandraqueue.handlers.ParameterHandlerProvider;
 import com.godaddy.domains.cassandraqueue.modules.Modules;
@@ -28,6 +31,7 @@ import io.dropwizard.views.ViewBundle;
 import io.dropwizard.views.ViewRenderer;
 import io.dropwizard.views.mustache.MustacheViewRenderer;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -103,6 +107,14 @@ public class ServiceApplication extends Application<ServiceConfiguration> {
         environment.jersey().register(new ParameterHandlerProvider());
     }
 
+    private void configureJson(ServiceConfiguration config, final Environment environment) {
+        ObjectMapper mapper = new JacksonJsonMapper().getMapper();
+
+        JacksonMessageBodyProvider jacksonBodyProvider = new JacksonMessageBodyProvider(mapper, environment.getValidator());
+
+        environment.jersey().register(jacksonBodyProvider);
+    }
+
     private void configureDiscoverableApiHelp(
             final ServiceConfiguration config,
             final Environment environment) {
@@ -135,21 +147,5 @@ public class ServiceApplication extends Application<ServiceConfiguration> {
 
     private void configureLogging(final ServiceConfiguration serviceConfiguration, final Environment environment) {
         LogMapping.register();
-    }
-
-    private void configureJson(ServiceConfiguration config, final Environment environment) {
-        ObjectMapper mapper =
-                new ObjectMapper().configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-                                  .configure(SerializationFeature.INDENT_OUTPUT, true)
-                                  .configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true)
-                                  .configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true)
-                                  .configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true)
-                                  .configure(DeserializationFeature.USE_BIG_INTEGER_FOR_INTS, true)
-                                  .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-
-        JacksonMessageBodyProvider jacksonBodyProvider =
-                new JacksonMessageBodyProvider(mapper, environment.getValidator());
-
-        environment.jersey().register(jacksonBodyProvider);
     }
 }
