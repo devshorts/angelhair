@@ -14,7 +14,6 @@ import com.goddady.cassandra.queue.api.client.QueueName;
 import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
 import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
-import com.godaddy.domains.cassandraqueue.workers.RepairWorker;
 import com.google.inject.Injector;
 import org.joda.time.Duration;
 import org.junit.Test;
@@ -69,7 +68,7 @@ public class RepairTests extends TestBase {
 
         getTestClock().tickSeconds(5L);
 
-        repairWorker.waitForRunOnce();
+        repairWorker.waitForNextRun();
 
         final Message repairedMessage = dataContext.getMessageRepository().getMessage(index);
 
@@ -100,7 +99,7 @@ public class RepairTests extends TestBase {
 
         final QueueName queueName = QueueName.valueOf("repairer_moves_off_ghost_messages");
 
-        final QueueDefinition queueDefinition = setupQueue(queueName);
+        final QueueDefinition queueDefinition = setupQueue(queueName, 2);
 
         repairWorkerFactory.forQueue(queueDefinition);
 
@@ -115,13 +114,15 @@ public class RepairTests extends TestBase {
                                  .index(index)
                                  .build();
 
-        final RepairWorker repairWorker = repairWorkerFactory.forQueue(queueDefinition);
+        final RepairWorkerImpl repairWorker = (RepairWorkerImpl)repairWorkerFactory.forQueue(queueDefinition);
 
         RepairBucketPointer repairCurrentBucketPointer = dataContext.getPointerRepository().getRepairCurrentBucketPointer();
 
         assertThat(repairCurrentBucketPointer.get()).isEqualTo(0);
 
         dataContext.getMessageRepository().putMessage(message);
+
+        getTestClock().tick();
 
         message = dataContext.getMessageRepository().getMessage(index);
 
@@ -131,6 +132,8 @@ public class RepairTests extends TestBase {
 
         // the ghost message
         dataContext.getMonotonicRepository().nextMonotonic();
+        getTestClock().tick();
+
 
         // tombstone the old bucket
         dataContext.getMessageRepository().tombstone(ReaderBucketPointer.valueOf(0));
@@ -140,8 +143,9 @@ public class RepairTests extends TestBase {
         final Message thirdmessage = Message.builder().blob("3rd").index(index).build();
 
         dataContext.getMessageRepository().putMessage(thirdmessage);
+        getTestClock().tickSeconds(5L);
 
-        Thread.sleep(15000);
+        repairWorker.waitForNextRun();
 
         // assert that the repair pointer moved
         repairCurrentBucketPointer = dataContext.getPointerRepository().getRepairCurrentBucketPointer();

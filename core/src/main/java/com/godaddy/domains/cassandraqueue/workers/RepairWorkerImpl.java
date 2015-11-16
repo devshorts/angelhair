@@ -29,7 +29,8 @@ import java.util.concurrent.TimeUnit;
 
 import static com.godaddy.logging.LoggerFactory.getLogger;
 
-@Data class RepairContext {
+@Data
+class RepairContext {
     private final RepairBucketPointer pointer;
 
     private final DateTime tombstonedAt;
@@ -46,7 +47,7 @@ public class RepairWorkerImpl implements RepairWorker {
 
     private volatile boolean isStarted;
 
-    private final CompletableFuture<Boolean> runOnce = new CompletableFuture<>();
+    private final Object nextRun = new Object();
 
     @Inject
     public RepairWorkerImpl(
@@ -63,7 +64,8 @@ public class RepairWorkerImpl implements RepairWorker {
         logger = logger.with(definition.getQueueName());
     }
 
-    @Override public void start() {
+    @Override
+    public void start() {
         isStarted = true;
 
         logger.success("Starting repairer");
@@ -71,14 +73,17 @@ public class RepairWorkerImpl implements RepairWorker {
         schedule();
     }
 
-    @Override public void stop() {
+    @Override
+    public void stop() {
         isStarted = false;
 
         scheduledExecutorService.shutdown();
     }
 
-    public Boolean waitForRunOnce() throws ExecutionException, InterruptedException {
-        return runOnce.get();
+    public void waitForNextRun() throws InterruptedException {
+        synchronized (nextRun) {
+            nextRun.wait();
+        }
     }
 
     private void schedule() {
@@ -92,7 +97,9 @@ public class RepairWorkerImpl implements RepairWorker {
 
             if (firstBucketToMonitor.isPresent()) {
                 watchBucket(firstBucketToMonitor.get());
-                runOnce.complete(true);
+                synchronized (nextRun) {
+                    nextRun.notifyAll();
+                }
             }
         }
         catch (Throwable ex) {
