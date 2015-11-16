@@ -1,6 +1,8 @@
 package com.godaddy.domains.cassandraqueue.modules;
 
 import com.godaddy.domains.cassandraqueue.factories.ReaderFactory;
+import com.godaddy.domains.cassandraqueue.model.Clock;
+import com.godaddy.domains.cassandraqueue.model.JodaClock;
 import com.godaddy.domains.cassandraqueue.workers.Reader;
 import com.godaddy.domains.cassandraqueue.workers.ReaderImpl;
 import com.google.inject.AbstractModule;
@@ -13,3 +15,4 @@ public class ReaderModule extends AbstractModule {
                         .build(ReaderFactory.class));
     }
 }
+

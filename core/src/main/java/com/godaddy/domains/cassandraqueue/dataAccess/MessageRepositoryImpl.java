@@ -8,6 +8,7 @@ import com.datastax.driver.core.querybuilder.Select;
 import com.godaddy.domains.cassandraqueue.dataAccess.exceptions.ExistingMonotonFoundException;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
 import com.godaddy.domains.cassandraqueue.model.BucketPointer;
+import com.godaddy.domains.cassandraqueue.model.Clock;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MessagePointer;
 import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
@@ -19,10 +20,8 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Duration;
 
-import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
@@ -30,19 +29,22 @@ import static java.util.stream.Collectors.toList;
 
 public class MessageRepositoryImpl extends RepositoryBase implements MessageRepository {
     private final Session session;
+    private final Clock clock;
     private final QueueDefinition queueDefinition;
 
     @Inject
     public MessageRepositoryImpl(
             Session session,
+            Clock clock,
             @Assisted QueueDefinition queueDefinition) {
         this.session = session;
+        this.clock = clock;
         this.queueDefinition = queueDefinition;
     }
 
     @Override
     public void putMessage(final Message message, final Duration initialInvisibility) throws ExistingMonotonFoundException {
-        final DateTime now = DateTime.now(DateTimeZone.UTC);
+        final DateTime now = getNow();
         final Long bucketPointer = message.getIndex().toBucketPointer(queueDefinition.getBucketSize()).get();
 
         final MessageTag randomMessageTag = MessageTag.random();
@@ -74,7 +76,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         /*
             Three invariants when consuming: invis time, version, and delivery count are always bumped atomically
          */
-        final DateTime newInvisTime = DateTime.now(DateTimeZone.UTC).plus(duration);
+        final DateTime newInvisTime = getNow().plus(duration);
         final int newVersion = message.getVersion() + 1;
         final int deliveryCount = message.getDeliveryCount() + 1;
 
@@ -93,6 +95,10 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
         }
 
         return Optional.empty();
+    }
+
+    private DateTime getNow() {
+        return clock.now().toDateTime(DateTimeZone.UTC);
     }
 
     @Override
@@ -119,7 +125,7 @@ public class MessageRepositoryImpl extends RepositoryBase implements MessageRepo
     public void tombstone(final ReaderBucketPointer bucketPointer) {
         // mark the bucket as tombstoned
 
-        final DateTime now = DateTime.now(DateTimeZone.UTC);
+        final DateTime now = getNow();
         Statement statement = QueryBuilder.insertInto(Tables.Message.TABLE_NAME)
                                           .ifNotExists()
                                           .value(Tables.Message.QUEUENAME, queueDefinition.getQueueName().get())

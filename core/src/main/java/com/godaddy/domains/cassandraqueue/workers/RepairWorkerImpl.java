@@ -4,6 +4,7 @@ import com.godaddy.domains.cassandraqueue.ServiceConfiguration;
 import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.MessageRepository;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
+import com.godaddy.domains.cassandraqueue.model.Clock;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
@@ -33,6 +34,7 @@ import static com.godaddy.logging.LoggerFactory.getLogger;
 
 public class RepairWorkerImpl implements RepairWorker {
     private final BucketConfiguration configuration;
+    private final Clock clock;
     private final ScheduledExecutorService scheduledExecutorService;
 
     private Logger logger = getLogger(RepairWorkerImpl.class);
@@ -45,8 +47,10 @@ public class RepairWorkerImpl implements RepairWorker {
     public RepairWorkerImpl(
             ServiceConfiguration configuration,
             DataContextFactory factory,
+            Clock clock,
             @RepairPool ScheduledExecutorService executorService,
             @Assisted QueueDefinition definition) {
+        this.clock = clock;
         scheduledExecutorService = executorService;
         this.configuration = configuration.getBucketConfiguration();
         dataContext = factory.forQueue(definition);
@@ -102,7 +106,7 @@ public class RepairWorkerImpl implements RepairWorker {
 
         final List<Message> messages = dataContext.getMessageRepository().getMessages(pointer.getPointer());
 
-        messages.stream().filter(i -> !i.isAcked() && i.isVisible() && i.getDeliveryCount() == 0)
+        messages.stream().filter(message -> !message.isAcked() && message.isVisible(clock) && message.getDeliveryCount() == 0)
                 .forEach(this::republishMessage);
 
         advance(pointer.getPointer());

@@ -14,9 +14,6 @@ import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
 import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
-import com.godaddy.domains.cassandraqueue.modules.ConfigProviderModule;
-import com.godaddy.logging.Logger;
-import com.godaddy.logging.LoggerFactory;
 import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Inject;
 import com.wordnik.swagger.annotations.Api;
@@ -34,7 +31,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -84,7 +80,8 @@ public class QueueDebugResource extends BaseQueueResource {
     })
     public Response getBucketMessages(
             @PathParam("queueName") QueueName queueName,
-            @PathParam("bucketPointer") Long bucketPointer) {
+            @PathParam("bucketPointer") Long bucketPointer,
+            @QueryParam("onlyUnacked") @DefaultValue("false") Boolean onlyUnacked) {
 
         final Optional<QueueDefinition> queueDefinition = getQueueDefinition(queueName);
 
@@ -93,9 +90,13 @@ public class QueueDebugResource extends BaseQueueResource {
         }
 
 
-        final List<Message> messages = getMessageRepoFactory()
+        List<Message> messages = getMessageRepoFactory()
                 .forQueue(queueDefinition.get())
                 .getBucketContents(ReaderBucketPointer.valueOf(bucketPointer));
+
+        if(onlyUnacked){
+            messages = messages.stream().filter(Message::isAcked).collect(toList());
+        }
 
         return Response.ok(messages)
                        .status(Response.Status.OK)
@@ -111,7 +112,8 @@ public class QueueDebugResource extends BaseQueueResource {
             @ApiResponse(code = 500, message = "Server Error")
     })
     public Response getCurrentBucketMessages(
-            @PathParam("queueName") QueueName queueName) {
+            @PathParam("queueName") QueueName queueName,
+            @QueryParam("onlyUnacked") @DefaultValue("false") Boolean onlyUnacked) {
 
         final Optional<QueueDefinition> queueDefinition = getQueueDefinition(queueName);
         if (!queueDefinition.isPresent()) {
@@ -120,71 +122,14 @@ public class QueueDebugResource extends BaseQueueResource {
 
         final DataContext dataContext = dataContextFactory.forQueue(queueDefinition.get());
 
-        final List<Message> messages =
+        List<Message> messages =
                 getMessageRepoFactory()
                         .forQueue(queueDefinition.get())
                         .getBucketContents(dataContext.getPointerRepository().getReaderCurrentBucket());
 
-        return Response.ok(messages)
-                       .status(Response.Status.OK)
-                       .build();
-    }
-
-    @GET
-    @Path("/{queueName}/buckets/{bucketPointer}/messages/unacked")
-    @ApiOperation(value = "Get bucket raw unacked messages")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 404, message = "Queue doesn't exist"),
-            @ApiResponse(code = 500, message = "Server Error")
-    })
-    public Response getUnAckedBucketMessages(
-            @PathParam("queueName") QueueName queueName,
-            @PathParam("bucketPointer") Long bucketPointer) {
-
-        final Optional<QueueDefinition> queueDefinition = getQueueDefinition(queueName);
-        if (!queueDefinition.isPresent()) {
-            return buildQueueNotFoundResponse(queueName);
+        if (onlyUnacked) {
+            messages = messages.stream().filter(Message::isAcked).collect(toList());
         }
-
-        final List<Message> messages =
-                getMessageRepoFactory()
-                        .forQueue(queueDefinition.get())
-                        .getBucketContents(ReaderBucketPointer.valueOf(bucketPointer))
-                        .stream()
-                        .filter(Message::isNotAcked)
-                        .collect(toList());
-
-        return Response.ok(messages)
-                       .status(Response.Status.OK)
-                       .build();
-    }
-
-    @GET
-    @Path("/{queueName}/buckets/current/messages/unacked")
-    @ApiOperation(value = "Get current reader bucket raw unacked messages")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 404, message = "Queue doesn't exist"),
-            @ApiResponse(code = 500, message = "Server Error")
-    })
-    public Response getUnAckedCurrentBucketMessages(
-            @PathParam("queueName") QueueName queueName) {
-
-        final Optional<QueueDefinition> queueDefinition = getQueueDefinition(queueName);
-        if (!queueDefinition.isPresent()) {
-            return buildQueueNotFoundResponse(queueName);
-        }
-
-        final DataContext dataContext = dataContextFactory.forQueue(queueDefinition.get());
-
-        final List<Message> messages =
-                getMessageRepoFactory()
-                        .forQueue(queueDefinition.get())
-                        .getBucketContents(dataContext.getPointerRepository().getReaderCurrentBucket())
-                        .stream()
-                        .filter(Message::isNotAcked)
-                        .collect(toList());
 
         return Response.ok(messages)
                        .status(Response.Status.OK)

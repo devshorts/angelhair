@@ -59,9 +59,11 @@ public class RepairTests extends TestBase {
 
         dataContext.getMessageRepository().putMessage(message);
 
+        getTestClock().tick();
+
         dataContext.getMessageRepository().tombstone(ReaderBucketPointer.valueOf(0));
 
-        Thread.sleep(5000);
+        getTestClock().tickSeconds(5L);
 
         final Message repairedMessage = dataContext.getMessageRepository().getMessage(index);
 

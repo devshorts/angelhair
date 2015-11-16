@@ -3,6 +3,7 @@ package com.godaddy.domains.cassandraqueue.workers;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.model.BucketPointer;
+import com.godaddy.domains.cassandraqueue.model.Clock;
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MessagePointer;
@@ -91,14 +92,17 @@ public class ReaderImpl implements Reader {
 
     private final DataContext dataContext;
     private final BucketConfiguration config;
+    private final Clock clock;
     private final QueueDefinition queueDefinition;
 
     @Inject
     public ReaderImpl(
             DataContextFactory dataContextFactory,
             BucketConfiguration config,
+            Clock clock,
             @Assisted QueueDefinition queueDefinition) {
         this.config = config;
+        this.clock = clock;
         this.queueDefinition = queueDefinition;
         dataContext = dataContextFactory.forQueue(queueDefinition);
     }
@@ -156,7 +160,7 @@ public class ReaderImpl implements Reader {
             return Optional.empty();
         }
 
-        if (messageAt.isVisible() && messageAt.isNotAcked()) {
+        if (messageAt.isVisible(clock) && messageAt.isNotAcked()) {
             // the message has come back alive
             return dataContext.getMessageRepository().consumeMessage(messageAt, invisiblity);
         }
@@ -186,7 +190,7 @@ public class ReaderImpl implements Reader {
         // otherwise pointer stays the same
         final Optional<Message> first = messages.stream()
                                                 .filter(m -> m.isNotAcked() &&
-                                                             m.isNotVisible() &&
+                                                             m.isNotVisible(clock) &&
                                                              m.getDeliveryCount() > 0).findFirst();
 
         if (first.isPresent()) {
@@ -234,7 +238,7 @@ public class ReaderImpl implements Reader {
             }
         }
 
-        final Optional<Message> foundMessage = allMessages.stream().filter(m -> m.isNotAcked() && m.isVisible()).findFirst();
+        final Optional<Message> foundMessage = allMessages.stream().filter(m -> m.isNotAcked() && m.isVisible(clock)).findFirst();
 
         if (!foundMessage.isPresent()) {
             return Optional.empty();

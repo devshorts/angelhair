@@ -3,10 +3,12 @@ package com.godaddy.domains.cassandraqueue.unittests;
 import com.godaddy.domains.cassandraqueue.factories.DataContext;
 import com.godaddy.domains.cassandraqueue.factories.DataContextFactory;
 import com.godaddy.domains.cassandraqueue.factories.ReaderFactory;
+import com.godaddy.domains.cassandraqueue.model.Clock;
 import com.godaddy.domains.cassandraqueue.model.Message;
 import com.godaddy.domains.cassandraqueue.model.MonotonicIndex;
 import com.godaddy.domains.cassandraqueue.model.PopReceipt;
 import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
+import com.godaddy.domains.cassandraqueue.unittests.time.TestClock;
 import com.godaddy.domains.cassandraqueue.workers.BucketConfiguration;
 import com.godaddy.domains.cassandraqueue.workers.Reader;
 import com.goddady.cassandra.queue.api.client.QueueName;
@@ -79,13 +81,15 @@ public class ReaderTester extends TestBase {
 
         testContext.putMessage(0, "hi");
 
+        getTestClock().tick();
+
         Optional<Message> message = testContext.getReader().nextMessage(Duration.standardSeconds(4));
 
         assertThat(message.isPresent()).isTrue();
 
         assertThat(message.get().getDeliveryCount()).isEqualTo(0);
 
-        Thread.sleep(5000);
+        getTestClock().tickSeconds(5L);
 
         message = testContext.getReader().nextMessage(Duration.standardSeconds(4));
 
@@ -100,7 +104,11 @@ public class ReaderTester extends TestBase {
 
         testContext.putMessage(0, "hi");
 
+        getTestClock().tick();
+
         assertThat(testContext.readAndAckMessage("hi", 100L)).isTrue();
+
+        getTestClock().tick();
 
         assertThat(testContext.readNextMessage(Duration.standardSeconds(1)).isPresent()).isFalse();
     }
@@ -111,25 +119,32 @@ public class ReaderTester extends TestBase {
 
         testContext.putMessage(0, "ghost");
 
+        final TestClock testClock = getTestClock();
+
+        testClock.tick();
+
         assertThat(testContext.readAndAckMessage("ghost", 1L)).isTrue();
 
-        Thread.sleep(1000);
 
         for (int i = 0; i < 10; i++) {
+            testClock.tick();
+
             final Optional<Message> message = testContext.readNextMessage(Duration.millis(300));
 
             assertThat(message.isPresent()).isFalse();
-
-            Thread.sleep(1000);
         }
     }
 
     @Test
     public void test_monoton_skipped() throws Exception {
-        final ReaderQueueContext testContext = setupTestContext("test_monoton_skipped", 5);
+        final int bucketSize = 5;
+        final ReaderQueueContext testContext = setupTestContext("test_monoton_skipped", bucketSize);
+        final TestClock testClock = getTestClock();
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < bucketSize - 1; i++) {
             testContext.putMessage(0, "foo");
+
+            testClock.tick();
 
             assertThat(testContext.readAndAckMessage("foo", 100L)).isTrue();
         }
@@ -142,6 +157,8 @@ public class ReaderTester extends TestBase {
 
         //Put message in new bucket, verify that message can be read after monoton was skipped and new bucket contains message.
         testContext.putMessage(0, "bar");
+
+        testClock.tick();
 
         assertThat(testContext.readAndAckMessage("bar", 100L)).isTrue();
     }

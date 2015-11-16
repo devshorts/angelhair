@@ -8,6 +8,7 @@ import com.goddady.cassandra.queue.api.client.MessageTag;
 import lombok.Builder;
 import lombok.Data;
 import org.joda.time.DateTime;
+import org.joda.time.Instant;
 
 @Data
 @Builder
@@ -28,8 +29,8 @@ public class Message {
 
     private MessageTag tag;
 
-    public boolean isVisible() {
-        return nextVisiblityAt == null || nextVisiblityAt.isBeforeNow();
+    public boolean isVisible(Clock clock) {
+        return nextVisiblityAt == null || nextVisiblityAt.isBefore(clock.now());
     }
 
     public boolean isTombstone() { return getIndex().equals(Tombstone.index); }
@@ -40,8 +41,8 @@ public class Message {
     }
 
     @JsonIgnore
-    public boolean isNotVisible() {
-        return !isVisible();
+    public boolean isNotVisible(Clock clock) {
+        return !isVisible(clock);
     }
 
     @JsonIgnore
