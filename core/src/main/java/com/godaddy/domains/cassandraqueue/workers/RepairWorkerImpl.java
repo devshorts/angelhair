@@ -11,7 +11,6 @@ import com.godaddy.domains.cassandraqueue.model.QueueDefinition;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
 import com.godaddy.domains.cassandraqueue.modules.annotations.RepairPool;
 import com.godaddy.logging.Logger;
-import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import lombok.Data;
@@ -40,6 +39,7 @@ public class RepairWorkerImpl implements RepairWorker {
     private final BucketConfiguration configuration;
     private final Clock clock;
     private final ScheduledExecutorService scheduledExecutorService;
+    private final QueueDefinition queueDefinition;
 
     private Logger logger = getLogger(RepairWorkerImpl.class);
 
@@ -58,6 +58,7 @@ public class RepairWorkerImpl implements RepairWorker {
             @Assisted QueueDefinition definition) {
         this.clock = clock;
         scheduledExecutorService = executorService;
+        queueDefinition = definition;
         this.configuration = configuration.getBucketConfiguration();
         dataContext = factory.forQueue(definition);
 
@@ -167,7 +168,7 @@ public class RepairWorkerImpl implements RepairWorker {
             if (tombstoneTime.isPresent()) {
                 final List<Message> messages = messageRepository.getMessages(currentBucket);
 
-                if (messages.size() == configuration.getBucketSize() && messages.stream().allMatch(Message::isAcked)) {
+                if (messages.size() == queueDefinition.getBucketSize() && messages.stream().allMatch(Message::isAcked)) {
                     currentBucket = advance(currentBucket);
 
                     logger.with(currentBucket).info("Found full bucket, advancing");

@@ -88,7 +88,6 @@ public class RepairTests extends TestBase {
 
         final BucketConfiguration bucketConfiguration = new BucketConfiguration();
 
-        bucketConfiguration.setBucketSize(2);
         bucketConfiguration.setRepairWorkerTimeout(Duration.standardSeconds(10));
 
         serviceConfiguration.setBucketConfiguration(bucketConfiguration);

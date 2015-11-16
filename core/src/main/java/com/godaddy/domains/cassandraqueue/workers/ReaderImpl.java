@@ -175,7 +175,7 @@ public class ReaderImpl implements Reader {
 
     private Optional<Message> tryGetNextInvisMessage(final InvisibilityMessagePointer pointer, Duration invisiblity) {
         // check all the messages in the bucket the invis pointer is currently on
-        final ReaderBucketPointer bucketPointer = pointer.toBucketPointer(config.getBucketSize());
+        final ReaderBucketPointer bucketPointer = pointer.toBucketPointer(queueDefinition.getBucketSize());
 
         final List<Message> messages = dataContext.getMessageRepository()
                                                   .getMessages(bucketPointer);
@@ -213,9 +213,9 @@ public class ReaderImpl implements Reader {
      * @return
      */
     private InvisibilityMessagePointer getPointerForNextBucket(InvisibilityMessagePointer pointer) {
-        final ReaderBucketPointer bucketPointer = pointer.toBucketPointer(config.getBucketSize());
+        final ReaderBucketPointer bucketPointer = pointer.toBucketPointer(queueDefinition.getBucketSize());
 
-        final MonotonicIndex monotonicIndex = bucketPointer.next().startOf(config.getBucketSize());
+        final MonotonicIndex monotonicIndex = bucketPointer.next().startOf(queueDefinition.getBucketSize());
 
         return InvisibilityMessagePointer.valueOf(monotonicIndex);
     }
@@ -227,7 +227,7 @@ public class ReaderImpl implements Reader {
         final boolean allComplete = allMessages.stream().allMatch(Message::isAcked);
 
         if (allComplete) {
-            if (allMessages.size() == config.getBucketSize() || monotonPastBucket(currentBucket)) {
+            if (allMessages.size() == queueDefinition.getBucketSize() || monotonPastBucket(currentBucket)) {
                 tombstone(currentBucket);
 
                 return getAndMark(advanceBucket(currentBucket), invisiblity);
