@@ -224,7 +224,7 @@ public class ReaderImpl implements Reader {
 
         final List<Message> allMessages = dataContext.getMessageRepository().getMessages(currentBucket);
 
-        final boolean allComplete = allMessages.stream().allMatch(Message::isAcked);
+        final boolean allComplete = allMessages.stream().allMatch(m -> m.isAcked() || m.isNotVisible(clock));
 
         if (allComplete) {
             if (allMessages.size() == queueDefinition.getBucketSize() || monotonPastBucket(currentBucket)) {
