@@ -214,25 +214,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>${maven.exec.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <mainClass>com.godaddy.domains.cassandraqueue.ServiceApplication</mainClass>
-                    <arguments>
-                        <argument>server</argument>
-                        <argument>rpm/conf/configuration.yml</argument>
-                    </arguments>
-                </configuration>
-            </plugin>
 
             <plugin>
                 <groupId>com.spotify</groupId>
