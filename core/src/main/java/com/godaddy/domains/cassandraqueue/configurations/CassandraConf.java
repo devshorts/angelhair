@@ -9,10 +9,8 @@ import com.godaddy.domains.cassandraqueue.configurations.config.Ssl;
 import com.godaddy.logging.Logger;
 import com.godaddy.logging.LoggerFactory;
 import com.google.common.base.Strings;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import org.stuartgunter.dropwizard.cassandra.CassandraFactory;
 import org.stuartgunter.dropwizard.cassandra.CassandraHealthCheck;
 import org.stuartgunter.dropwizard.cassandra.CassandraMetricSet;
@@ -52,6 +50,10 @@ public class CassandraConf extends CassandraFactory {
         builder.withPort(getPort());
         builder.withCompression(getCompression());
         builder.withProtocolVersion(getProtocolVersion());
+
+        if (getQueryOptions() != null) {
+            builder.withQueryOptions(getQueryOptions());
+        }
 
         if (getAuthProvider() != null) {
             builder.withAuthProvider(getAuthProvider().build());

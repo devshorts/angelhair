@@ -10,25 +10,27 @@ server:
       port: 8081
 
 cassandra:
-  clusterName: rg-api-cluster
-  keyspace: hackathon
-  contactPoints: ["192.168.99.100"]
+  clusterName: dom_cassandra_queue-cluster
+  keyspace: dom_cassandra_queue
+  contactPoints: ["10.22.240.181"]
   port: 9042
   socketOptions:
     keepAlive: true
   authProvider:
     type: plainText
-    username: ganstaUser
-    password: IHNJ79Yfs70fJBKyOhmR
+    username: dom_cassandra_queue
+    password: kwFQmLPPHLWhpmsl39kd
+  queryOptions:
+    consistencyLevel: LOCAL_QUORUM
   reconnectionPolicy:
     type: exponential
     baseDelay: 1 second
     maxDelay: 30 seconds
-  #SSL port will be used if SSL is defined.
-  #ssl:
-  #  port: 9043
-  #loadBalancingPolicy:
-    #dataCenter: phx3_stg_spin
+  SSL port will be used if SSL is defined.
+  ssl:
+    port: 9043
+  loadBalancingPolicy:
+    dataCenter: phx3_stg_ssd
 
 metrics:
   reporters:
@@ -40,7 +42,6 @@ metrics:
       frequency: 120 seconds
     - type: graphite
       host: gen1.graphs.test.int.godaddy.com
-      #host: 10.22.252.226
       port: 2003
       prefix: domains.cassandra-queue
 
