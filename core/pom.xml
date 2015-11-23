@@ -247,10 +247,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <imageTags>
-                        <tag>${buildNumber}</tag>
-                    </imageTags>
-                    <imageName>${dockerRepo}/cassandra-queue</imageName>
+                    <imageName>${dockerRepo}/cassandra-queue:${buildNumber}</imageName>
                     <dockerDirectory>${project.basedir}/docker</dockerDirectory>
                     <pullOnBuild>${docker.pullOnBuild}</pullOnBuild>
                     <resources>
