@@ -26,7 +26,7 @@ cassandra:
     type: exponential
     baseDelay: 1 second
     maxDelay: 30 seconds
-  SSL port will be used if SSL is defined.
+  #SSL port will be used if SSL is defined.
   ssl:
     port: 9043
   loadBalancingPolicy:
