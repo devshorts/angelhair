@@ -17,16 +17,10 @@ Angelhair provides:
 
 ```
 docker run -it \
-    -e CLUSTER_NAME="" \
     -e KEYSPACE="" \
     -e CONTACT_POINTS="" \
     -e USERNAME="" \
     -e PASSWORD="" \
-    -e USE_SSL="" \
-    -e DATA_CENTER="" \
-    -e METRICS_GRAPHITE "true" \
-    -e GRAPHITE_PREFIX=" \
-    -e GRAPHITE_URL=""  \
     onoffswitch/angelhair
 ```
 
@@ -37,20 +31,34 @@ yaml
 
 ```
 docker run -it \
-    -e CLUSTER_NAME="" \
     -e KEYSPACE="" \
-    -e CONTACT_POINTS="" \
-    -e USERNAME="" \
-    -e PASSWORD="" \
-    -e USE_SSL="" \
-    -e DATA_CENTER="" \
-    -e METRICS_GRAPHITE "true" \
-    -e GRAPHITE_PREFIX=" \
-    -e GRAPHITE_URL=""  \
+        -e CONTACT_POINTS="" \
+        -e USERNAME="" \
+        -e PASSWORD="" \
     onoffswitch/angelhair bootstrap
 ```
 
 This will build out the required tables in your keyspace. The keyspace must already exist
+
+## Available env vars
+
+Nested properties are only enabled if the parent is enabled
+
+- CLUSTER_NAME
+- KEYSPACE
+- CONTACT_POINTS
+- AUTH_PROVIDER - defaults to "plainText"
+- USERNAME
+- PASSWORD
+- CONSISTENCY_LEVEL - defaults to LOCAL_QUOURUM
+- CASSANDRA_PORT - defaults to 9042
+- USE_SSL - "true" or "false"
+  - SSL_PORT - defaults to 9043
+  - DATA_CENTER - uses this data center as a load balancing policy
+- USE_METRICS_GRAPHITE - "true" or "false"
+  - GRAPHITE_URL 
+  - GRAPHITE_PREFIX 
+- LOGSTASH_CUSTOM_APP_NAME
 
 ## Why make a queue on cassandra?
 
