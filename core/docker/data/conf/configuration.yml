@@ -10,40 +10,38 @@ server:
       port: 8081
 
 cassandra:
-  clusterName: dom_cassandra_queue-cluster
-  keyspace: dom_cassandra_queue
-  contactPoints: ["10.22.240.181"]
-  port: 9042
+  clusterName: ${env.CLUSTER_NAME}
+  keyspace: ${env.KEYSPACE}
+  contactPoints: [${env.CONTACT_POINTS}]
+  port: ${env.CASSANDRA_POR!9042}
   socketOptions:
     keepAlive: true
   authProvider:
-    type: plainText
-    username: dom_cassandra_queue
-    password: kwFQmLPPHLWhpmsl39kd
+    type: ${env.AUTH_PROVIDER!"plainText"}
+    username: ${env.USERNAME}
+    password: ${env.PASSWORD}
   queryOptions:
-    consistencyLevel: LOCAL_QUORUM
+    consistencyLevel: ${env.CONSISTENCY_LEVEL!"LOCAL_QUORUM"}
   reconnectionPolicy:
     type: exponential
     baseDelay: 1 second
     maxDelay: 30 seconds
-  #SSL port will be used if SSL is defined.
+<#if env.USE_SSL?has_content && env.USE_SSL == "true">
   ssl:
-    port: 9043
+    port: ${env.SSL_PORT!9043}
   loadBalancingPolicy:
-    dataCenter: phx3_stg_ssd
+    dataCenter: ${env.DATA_CENTER}
+</#if>
 
+<#if env.USE_METRICS_GRAPHITE?has_content && env.USE_METRICS_GRAPHITE == "true">
 metrics:
   reporters:
-    - type: console
-      timeZone: UTC
-      output: stdout
-      durationUnit: milliseconds
-      rateUnit: seconds
-      frequency: 120 seconds
     - type: graphite
-      host: gen1.graphs.test.int.godaddy.com
-      port: 2003
-      prefix: domains.cassandra-queue
+      host: ${env.GRAPHITE_URL}
+      port: ${env.GRAPHITE_PORT!2003}
+      prefix: ${env.GRAPHITE_PREFIX}
+</#if>
+
 
 # Logging settings.
 logging:
@@ -62,7 +60,7 @@ logging:
   appenders:
     # Log warnings and errors to stderr
     - type: console
-      threshold: ALL
+      threshold: INFO
       target: stderr
 
     # Log structured json log for logstash
@@ -71,7 +69,7 @@ logging:
       currentLogFilename: /data/logs/debug-json.log
       archivedLogFilenamePattern: /data/logs/debug-json%d.log.gz
       customFields:
-        app: cassandra-queue
+        app: ${env.LOGSTASH_CUSTOM_APP_NAME!"cassandra-queue"}
       archivedFileCount: 5
 
     # Log info, warnings and errors to our apps' main log.

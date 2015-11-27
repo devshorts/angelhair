@@ -186,7 +186,7 @@ public class RepairWorkerImpl implements RepairWorker {
                 }
             }
 
-            logger.with(currentBucket).info("On active bucket not tombstoned");
+            logger.with(currentBucket).debug("On active bucket not tombstoned");
 
             // on an active bucket that isn't tombstoned, just come back later and wait for tombstone
             return Optional.empty();

@@ -13,13 +13,32 @@ Angelhair provides:
 - simple API of get/ack
 - highly scaleable
 
+## To run
+
+```
+docker run -it \
+    -e CLUSTER_NAME=""
+    -e KEYSPACE=""
+    -e CONTACT_POINTS=""
+    -e USERNAME=""
+    -e PASSWORD=""
+    -e USE_SSL=""
+    -e DATA_CENTER=""
+    -e METRICS_GRAPHITE "true"
+    -e GRAPHITE_PREFIX="
+    -e GRAPHITE_URL=""
+    
+```
+
+If you don't want to use environment variables, you can mount a volume to `/data/conf` and provide your own
+yaml
+
 ## Team members
 
 - Anton Kropp
 - Jake Swenson
 - Brendan Campbell
 - Shelby Sanders
-
 
 
 ## Why make a queue on cassandra?

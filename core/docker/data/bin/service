@@ -26,13 +26,7 @@ fi
 
 echo "USING JAVA DEBUG $properties"
 
-if [ -n "$ENV_CONF" ]; then
-    echo "Using $ENV_CONF file."
-
-    configFile=$conf_dir/configuration-$ENV_CONF.yml
-else
-    configFile=$conf_dir/configuration.yml
-fi
+configFile=$conf_dir/configuration.yml
 
 cmd="java $properties -cp $classpath $classname $command $configFile"
 

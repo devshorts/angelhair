@@ -1,3 +1,4 @@
+scripts/env_vars.sh
 logs/
 artifacts/
 *.bak
