@@ -38,7 +38,18 @@ docker run -it \
     onoffswitch/angelhair bootstrap
 ```
 
-This will build out the required tables in your keyspace. The keyspace must already exist
+This will build out the required tables in your keyspace. 
+
+If your user has permissions to create a keyspace you can run
+
+```
+docker run -it \
+    -e KEYSPACE="" \
+        -e CONTACT_POINTS="" \
+        -e USERNAME="" \
+        -e PASSWORD="" \
+    onoffswitch/angelhair bootstrap -createKeyspace
+```
 
 ## Available env vars
 

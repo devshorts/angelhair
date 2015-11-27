@@ -42,11 +42,13 @@ function boostrap(){
         -ip ${CONTACT_POINTS} \
         -u ${USERNAME} \
         -pw ${PASSWORD} \
-        -f /data/db
+        -f /data/db \
+        "$@"
 }
 
 if [ "$1" == "bootstrap" ]; then
-    boostrap
+    shift
+    boostrap $@
 elif [ "$1" == "debug" ]; then
     exec /bin/bash
 else
