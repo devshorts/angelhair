@@ -160,19 +160,3 @@ and do conditional atomic actions based on that message version.
 
 A feature in progress (though not currently complete) is to use the RAFT consensus protocol (comparable to PAXOS) to elect
 a leader for the repair worker. This prevents multiple repair workers re-publishing messages that are out of order.
-
-## Brainstorming images
-
-- [Outlineing how put will work](brainstorming_images/put.JPG)
-- [The reader base logic](brainstorming_images/reader.JPG)
-- [The job of the repair worker](brainstorming_images/repair_worker.JPG)
-- [Tables required](brainstorming_images/tables.JPG)
-- [Ack and invisibility](brainstorming_images/ack_and_invisibility.JPG)
-
-## Coverage report
-
-App coverage
-![App coverage report picture](img/coverage_report.png)
-
-Api client coverage
-![API client coverage report](img/api_coverage_report.png)
