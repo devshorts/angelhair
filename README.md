@@ -33,13 +33,24 @@ docker run -it \
 If you don't want to use environment variables, you can mount a volume to `/data/conf` and provide your own
 yaml
 
-## Team members
+## Bootstrapping required tables
 
-- Anton Kropp
-- Jake Swenson
-- Brendan Campbell
-- Shelby Sanders
+```
+docker run -it \
+    -e CLUSTER_NAME="" \
+    -e KEYSPACE="" \
+    -e CONTACT_POINTS="" \
+    -e USERNAME="" \
+    -e PASSWORD="" \
+    -e USE_SSL="" \
+    -e DATA_CENTER="" \
+    -e METRICS_GRAPHITE "true" \
+    -e GRAPHITE_PREFIX=" \
+    -e GRAPHITE_URL=""  \
+    onoffswitch/angelhair bootstrap
+```
 
+This will build out the required tables in your keyspace. The keyspace must already exist
 
 ## Why make a queue on cassandra?
 

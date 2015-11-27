@@ -237,6 +237,11 @@
                             <directory>${project.build.directory}</directory>
                             <include>${project.build.finalName}.jar</include>
                         </resource>
+                        <resource>
+                            <targetPath>/data/db</targetPath>
+                            <directory>db/scripts</directory>
+                            <include>*.cql</include>
+                        </resource>
                     </resources>
                 </configuration>
             </plugin>

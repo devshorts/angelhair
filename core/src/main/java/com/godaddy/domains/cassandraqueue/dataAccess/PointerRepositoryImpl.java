@@ -9,9 +9,9 @@ import com.godaddy.domains.cassandraqueue.dataAccess.interfaces.PointerRepositor
 import com.godaddy.domains.cassandraqueue.model.InvisibilityMessagePointer;
 import com.godaddy.domains.cassandraqueue.model.Pointer;
 import com.godaddy.domains.cassandraqueue.model.PointerType;
-import com.goddady.cassandra.queue.api.client.QueueName;
 import com.godaddy.domains.cassandraqueue.model.ReaderBucketPointer;
 import com.godaddy.domains.cassandraqueue.model.RepairBucketPointer;
+import com.goddady.cassandra.queue.api.client.QueueName;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
@@ -19,7 +19,6 @@ import java.util.function.Function;
 
 import static com.datastax.driver.core.querybuilder.QueryBuilder.eq;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.gt;
-import static com.datastax.driver.core.querybuilder.QueryBuilder.in;
 import static com.datastax.driver.core.querybuilder.QueryBuilder.set;
 
 public class PointerRepositoryImpl extends RepositoryBase implements PointerRepository {
@@ -91,7 +90,6 @@ public class PointerRepositoryImpl extends RepositoryBase implements PointerRepo
         return session.execute(statement)
                       .wasApplied() ? destination : original;
     }
-
 
 
     private Clause pointerEqualsClause(Pointer pointer) {
