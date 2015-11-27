@@ -17,17 +17,17 @@ Angelhair provides:
 
 ```
 docker run -it \
-    -e CLUSTER_NAME=""
-    -e KEYSPACE=""
-    -e CONTACT_POINTS=""
-    -e USERNAME=""
-    -e PASSWORD=""
-    -e USE_SSL=""
-    -e DATA_CENTER=""
-    -e METRICS_GRAPHITE "true"
-    -e GRAPHITE_PREFIX="
-    -e GRAPHITE_URL=""
-    
+    -e CLUSTER_NAME="" \
+    -e KEYSPACE="" \
+    -e CONTACT_POINTS="" \
+    -e USERNAME="" \
+    -e PASSWORD="" \
+    -e USE_SSL="" \
+    -e DATA_CENTER="" \
+    -e METRICS_GRAPHITE "true" \
+    -e GRAPHITE_PREFIX=" \
+    -e GRAPHITE_URL=""  \
+    onoffswitch/cassandra-queue
 ```
 
 If you don't want to use environment variables, you can mount a volume to `/data/conf` and provide your own
