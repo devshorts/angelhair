@@ -27,7 +27,7 @@ docker run -it \
     -e METRICS_GRAPHITE "true" \
     -e GRAPHITE_PREFIX=" \
     -e GRAPHITE_URL=""  \
-    onoffswitch/cassandra-queue
+    onoffswitch/angelhair
 ```
 
 If you don't want to use environment variables, you can mount a volume to `/data/conf` and provide your own
